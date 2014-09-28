@@ -2,7 +2,7 @@ db/*
 hanabi-env
 
 # Python
-.pyc
+*.py[cod]
 
 # Mac Specific
 .DS_Store
