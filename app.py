@@ -73,9 +73,11 @@ def enterGame(gameId):
 def joinGame(gameId):
     cursor = g.db.cursor()
 
-    joinedPlayers = g.db.execute('SELECT COUNT(id) FROM players WHERE gameId=%d AND joined=1' % gameId).fetchall()
+    numPlayers = g.db.execute('SELECT COUNT(id) FROM players WHERE gameId=%d AND joined=1' % gameId).fetchall()[0][0]
+    gameRes = g.db.execute('SELECT gameJSON FROM games WHERE id=%d' % gameId).fetchall()[0]
+    game = json.loads(gameRes[0])
 
-    if (len(joinedPlayers) < 5):
+    if numPlayers < 5 and not game['hasStarted']:
         cursor.execute("UPDATE players SET joined=1 WHERE gameId=%d AND name='%s'" % (gameId, request.form['name']))
         g.db.commit()
         # TODO: poll msg (id, join-new)
@@ -115,11 +117,11 @@ def startGame(gameId):
             cursor.execute("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
             game['order'].append(player['name'])
         cursor.execute("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
-        g.db.commit()
+        g.db.commit()   
 
         # TODO: poll msg (id, game-start)
 
-        return jsonify(**{'success': True})
+        return jsonify(**{'success': True, 'game': getGame(gameId)})
     else:
         return jsonify(**{'success': False})
 
@@ -217,7 +219,7 @@ def endGame(gameId):
 
 @app.route('/')
 def index():
-    return render_template('home.html')
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
