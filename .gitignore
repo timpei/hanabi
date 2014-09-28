@@ -1,0 +1,10 @@
+db/*
+hanabi-env
+
+# Python
+.pyc
+
+# Mac Specific
+.DS_Store
+.AppleDouble
+.LSOverride
