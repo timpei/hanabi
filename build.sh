@@ -1,4 +1,6 @@
 virtualenv --no-site-package hanabi-env
+source hanabi-env/bin/activate
+
 pip install flask
 pip install pysqlite
 pip install gevent-socketio
