@@ -1,35 +1,51 @@
 # all the imports
-import sqlite3
+import os
+import psycopg2
+import urlparse
 import json
 from flask import Flask, request, Response, session, g, redirect, url_for, abort, render_template, flash, jsonify
 
 import hanabi
 from app_utils import encapsulate, parsePlayer
 
-DATABASE = 'db/hanabi.db'
 DEBUG = True
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 
 def connect_db():
-    return sqlite3.connect(app.config['DATABASE'])
+    urlparse.uses_netloc.append("postgres")
+    url = urlparse.urlparse(os.environ["DATABASE_URL"])
+    conn = psycopg2.connect(
+        database=url.path[1:],
+        user=url.username,
+        password=url.password,
+        host=url.hostname,
+        port=url.port
+    )
+    return conn
 
 @app.before_request
 def before_request():
-    g.db = connect_db()
+    g.conn = connect_db()
+    g.cur = g.conn.cursor()
 
 @app.teardown_request
 def teardown_request(exception):
     db = getattr(g, 'db', None)
     if db is not None:
         db.close()
+    cur = getattr(g, 'cur', None)
+    if cur is not None:
+        cur.close()
 
 def getGame(gameId):
-    gameResult = g.db.execute('SELECT gameJSON FROM games WHERE id = %d' % gameId).fetchall()[0]
-    game = json.loads(gameResult[0])
-    players = g.db.execute('SELECT name, handJSON FROM players WHERE gameId = %d AND joined=1' % gameId).fetchall()
-    spectators = g.db.execute('SELECT name FROM players WHERE gameId = %d AND joined=0' % gameId).fetchall()
+    g.cur.execute('SELECT gameJSON FROM games WHERE id = %d; ' % gameId)
+    game = json.loads(g.cur.fetchone()[0])
+    g.cur.execute('SELECT name, handJSON FROM players WHERE gameId = %d AND joined=1; ' % gameId)
+    players = g.cur.fetchall()
+    g.cur.execute('SELECT name FROM players WHERE gameId = %d AND joined=0; ' % gameId)
+    spectators = g.cur.fetchall()
 
     return encapsulate(game, gameId, players, spectators)
 
@@ -39,47 +55,46 @@ def loadGame(gameId):
 
 @app.route('/api/create', methods=['POST'])
 def createGame():
-    cursor = g.db.cursor()
 
     game = hanabi.newGameObject()
     game['isRainbow'] = False if request.form['rainbow'] == "false" else True
-    cursor.execute("INSERT INTO games (gameJSON) VALUES ('%s')" % json.dumps(game))
-    g.db.commit()
+    g.cur.execute("INSERT INTO games (gameJSON) VALUES ('%s') RETURNING id" % json.dumps(game))
+    gameId = g.cur.fetchone()[0]
+    g.conn.commit()
 
-    gameId = cursor.lastrowid
-    cursor.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, request.form['name'], '[]'))
-    g.db.commit()
+    g.cur.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, request.form['name'], '[]'))
+    g.conn.commit()
 
     return jsonify(**getGame(gameId))
 
 @app.route('/api/enter/<int:gameId>', methods=['POST'])
 def enterGame(gameId):
-    cursor = g.db.cursor()
     name = request.form['name']
 
-    players = g.db.execute('SELECT name, handJSON FROM players WHERE gameId = %d' % gameId).fetchall()
-    players = [parsePlayer(i) for i in players]
+    g.cur.execute('SELECT name, handJSON FROM players WHERE gameId = %d; ' % gameId)
+    players = [parsePlayer(i) for i in g.cur.fetchall()]
 
     for player in players:
         if player['name'] == name:
             return jsonify(**{'success': False})
 
-    cursor.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
-    g.db.commit()
+    g.cur.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
+    g.conn.commit()
     # TODO: poll msg (id, enter-nw)
     return jsonify(**{'success': True, 'game': getGame(gameId)})
 
 @app.route('/api/join/<int:gameId>', methods=['POST'])
 def joinGame(gameId):
-    cursor = g.db.cursor()
 
-    numPlayers = g.db.execute('SELECT COUNT(id) FROM players WHERE gameId=%d AND joined=1' % gameId).fetchall()[0][0]
-    gameRes = g.db.execute('SELECT gameJSON FROM games WHERE id=%d' % gameId).fetchall()[0]
+    g.cur.execute('SELECT COUNT(id) FROM players WHERE gameId=%d AND joined=1; ' % gameId)
+    numPlayers = g.cur.fetchone()[0]
+    g.cur.execute('SELECT gameJSON FROM games WHERE id=%d; ' % gameId)
+    gameRes = g.cur.fetchone()
     game = json.loads(gameRes[0])
 
     if numPlayers < 5 and not game['hasStarted']:
-        cursor.execute("UPDATE players SET joined=1 WHERE gameId=%d AND name='%s'" % (gameId, request.form['name']))
-        g.db.commit()
+        g.cur.execute("UPDATE players SET joined=1 WHERE gameId=%d AND name='%s'" % (gameId, request.form['name']))
+        g.conn.commit()
         # TODO: poll msg (id, join-new)
         return jsonify(**{'success': True, 'game': getGame(gameId)})
     else:
@@ -89,7 +104,8 @@ def joinGame(gameId):
 def resumeGame(gameId):
     name = request.form['name']
 
-    players = g.db.execute("SELECT name FROM players WHERE gameId = %d AND name='%s'" % (gameId, name)).fetchall()
+    g.cur.execute("SELECT name FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
+    players = g.cur.fetchall()
     
     if len(players) != 0:
         # TODO: poll msg (id, resume)
@@ -99,25 +115,26 @@ def resumeGame(gameId):
 
 @app.route('/api/start/<int:gameId>', methods=['POST'])
 def startGame(gameId):
-    cursor = g.db.cursor()
 
-    gameResult = g.db.execute('SELECT gameJSON FROM games WHERE id=%d' % gameId).fetchall()[0]
-    players = g.db.execute('SELECT name, handJSON FROM players WHERE gameId = %d AND joined=1' % gameId).fetchall()
+    g.cur.execute('SELECT gameJSON FROM games WHERE id=%d; ' % gameId)
+    gameResult = g.cur.fetchone()
+    g.cur.execute('SELECT name, handJSON FROM players WHERE gameId = %d AND joined=1; ' % gameId)
+    players = g.cur.fetchall()
     game = json.loads(gameResult[0])
     players = [parsePlayer(i) for i in players]
 
     if (not game['hasStarted']) and len(players) > 1:
         game['hasStarted'] = True
-        #cursor.execute("UPDATE games SET gameJSON='%s' WHERE id=%d" % (json.dumps(game), gameId))
-        #g.db.commit()
+        #g.cur.execute("UPDATE games SET gameJSON='%s' WHERE id=%d" % (json.dumps(game), gameId))
+        #g.conn.commit()
 
         deck = hanabi.startGameAndGetDeck(game, players)
 
         for player in players:
-            cursor.execute("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
+            g.cur.execute("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
             game['order'].append(player['name'])
-        cursor.execute("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
-        g.db.commit()   
+        g.cur.execute("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
+        g.conn.commit()   
 
         # TODO: poll msg (id, game-start)
 
@@ -140,17 +157,19 @@ def giveHint(hintType, gameId):
     hint = int(request.form['hint']) if hintType == 'number' else request.form['hint']
 
 
-    gameRes = g.db.execute('SELECT gameJSON FROM games WHERE id=%d' % gameId).fetchall()[0]
-    toPlayerRes = g.db.execute("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, toName)).fetchall()[0]
+    g.cur.execute('SELECT gameJSON FROM games WHERE id=%d; ' % gameId)
+    gameRes = g.cur.fetchone()
+    g.cur.execute("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, toName))
+    toPlayerRes = g.cur.fetchone()
 
     game = json.loads(gameRes[0])
     toPlayer = parsePlayer(toPlayerRes)
 
     if hanabi.canHint(game, name):
         cardsHinted = hanabi.giveHint(game, toPlayer, hintType, hint)
-        cursor = g.db.cursor()
-        cursor.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
-        g.db.commit()
+
+        g.cur.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
+        g.conn.commit()
         # TODO: pool msg (id, hint, colored hint msg)
         return jsonify(**{'success': True, 'cardsHinted': cardsHinted})
     else:
@@ -158,13 +177,14 @@ def giveHint(hintType, gameId):
 
 @app.route('/api/discard/<int:gameId>', methods=['POST'])
 def discardCard(gameId):
-    cursor = g.db.cursor()
 
     name = request.form['name']
     cardIndex = int(request.form['cardIndex'])
 
-    gameRes = g.db.execute('SELECT gameJSON, deckJSON FROM games WHERE id=%d' % gameId).fetchall()[0]
-    playerRes = g.db.execute("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, name)).fetchall()[0]
+    g.cur.execute('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
+    gameRes = g.cur.fetchone()
+    g.cur.execute("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
+    playerRes = g.cur.fetchone()
     
     game = json.loads(gameRes[0])
     deck = json.loads(gameRes[1])
@@ -173,23 +193,24 @@ def discardCard(gameId):
     hanabi.discardCard(game, deck, player, cardIndex)
     hanabi.endTurn(game)
 
-    cursor.execute("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
-    cursor.execute("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
-    g.db.commit()
+    g.cur.execute("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
+    g.cur.execute("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
+    g.conn.commit()
 
     # TODO: poll msg (id, discard msg)
     return jsonify(**{'success': True, 'game': getGame(gameId)})
 
 @app.route('/api/play/<int:gameId>', methods=['POST'])
 def playCard(gameId):
-    cursor = g.db.cursor()
 
     name = request.form['name']
     cardIndex = int(request.form['cardIndex'])
 
-    gameRes = g.db.execute('SELECT gameJSON, deckJSON FROM games WHERE id=%d' % gameId).fetchall()[0]
-    playerRes = g.db.execute("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, name)).fetchall()[0]
-    
+    g.cur.execute('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
+    gameRes = g.cur.fetchone()
+    g.cur.execute("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
+    playerRes = g.cur.fetchone()
+
     game = json.loads(gameRes[0])
     deck = json.loads(gameRes[1])
     player = parsePlayer(playerRes)
@@ -197,23 +218,22 @@ def playCard(gameId):
     hanabi.playCard(game, deck, player, cardIndex)
     hanabi.endTurn(game)
     
-    cursor.execute("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
-    cursor.execute("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
-    g.db.commit()
+    g.cur.execute("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
+    g.cur.execute("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
+    g.conn.commit()
     # TODO: poll msg (id, discard msg)
     return jsonify(**{'success': True, 'game': getGame(gameId)})
 
 @app.route('/api/end/<int:gameId>', methods=['POST'])
 def endGame(gameId):
-    cursor = g.db.cursor()
 
-    gameRes = g.db.execute('SELECT gameJSON, deckJSON FROM games WHERE id=%d' % gameId).fetchall()[0]
+    g.cur.execute('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
+    gameRes = g.cur.fetchone()
     game = json.loads(gameRes[0])
 
-    cursor = g.db.cursor()
     hanabi.giveUp(game)
-    cursor.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
-    g.db.commit()
+    g.cur.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
+    g.conn.commit()
     # TODO: pool msg(id, ended game)
     return jsonify(**{'success': True})
 

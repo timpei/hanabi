@@ -1,5 +1,6 @@
 db/*
 hanabi-env
+env.sh
 
 # Python
 *.py[cod]
