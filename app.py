@@ -9,7 +9,6 @@ import hanabi
 from app_utils import encapsulate, parsePlayer
 
 DEBUG = True
-hanabi_port = int(sys.argv[1])
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -243,4 +242,5 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=hanabi_port)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
