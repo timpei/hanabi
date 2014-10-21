@@ -30,7 +30,7 @@ pip install -r requirements.txt
 
 PostgreSQL needs to be running and psql needs to point to the correct path.
 ```
-psql -d timpei -a -f schema.sql
+psql -d $(whoami) -a -f schema.sql
 ```
 
 4: Setup environment:
@@ -38,7 +38,7 @@ psql -d timpei -a -f schema.sql
 ```
 echo "export DATABASE_URL=postgres:///$(whoami)" > env.sh
 chmod +x env.sh
-./env.sh
+. env.sh
 ```
 
 # Running the app

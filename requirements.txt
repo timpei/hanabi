@@ -1,4 +1,5 @@
 flask==0.10.1
-flask-sockets=0.1
+flask-sockets==0.1
 psycopg2==2.5.4
-gunicorn=19.1.1
+gunicorn==19.1.1
+flask-socketio

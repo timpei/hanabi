@@ -1,13 +1,4 @@
 import json
-import gevent
-
-from flask_sockets import Sockets
-
-class gameSocketClient(object):
-
-    def __init__(self):
-        self.clients = list()
-        
 
 def parsePlayer(playerRes):
     return {
