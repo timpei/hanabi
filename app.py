@@ -1,5 +1,5 @@
 # all the imports
-import os
+import os, sys
 import psycopg2
 import urlparse
 import json
@@ -266,5 +266,5 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=int(os.environ["HANABI_PORT"]))
-    
+    port = int(os.environ.get('PORT', 5000))
+    socketio.run(app, host='0.0.0.0', port=port)
