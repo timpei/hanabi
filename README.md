@@ -120,4 +120,19 @@ The above response can be obtained through a `GET /api/get/4` call, a hanabi gam
 
 # API Calls
 
-In construction
+
+##Get Game
+
+Get current game object.
+
+* `GET /api/game/<int:gameId>`
+* **Returns**: an Game object
+
+##Create Game
+Create and join a new game.
+* `POST /api/create`
+* **Requires**
+  * `isRainbow`: String (`"true"`/`"false"`)
+  * `name`: String
+* **Returns**: an Game object
+
