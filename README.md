@@ -120,19 +120,75 @@ The above response can be obtained through a `GET /api/get/4` call, a hanabi gam
 
 # API Calls
 
-
-##Get Game
+##Game Room Actions
+###Get Game
 
 Get current game object.
 
 * `GET /api/game/<int:gameId>`
-* **Returns**: an Game object
+* **Returns**: a Game object
 
-##Create Game
+###Create Game
 Create and join a new game.
 * `POST /api/create`
 * **Requires**
-  * `isRainbow`: String (`"true"`/`"false"`)
-  * `name`: String
-* **Returns**: an Game object
+  * `isRainbow`: boolean
+  * `name`: string
+* **Returns**
+  * `success`: boolean
+  * `game`: a Game object
 
+###Enter Game
+Enter a game room. Player will become a spectator.
+* `POST /api/enter/<int:gameId>`
+* **Requires**
+  * `name`: string
+* **Returns**
+  * `success`: boolean
+  * `game`: a Game object (only when successful)
+
+###Resume Game
+Resume or re-join a game. Player must be already a player or spectator prior to the call.
+* `GET /api/enter/<int:gameId>`
+* **Requires**
+  * `name`: string
+* **Returns**
+  * `success`: boolean
+  * `game`: a Game object (only when successful)
+
+###Join Game
+Join a game. Player must be a spectator prior to the call. Will fail if number of joined players is at max (5).
+* `POST /api/join/<int:gameId>`
+* **Requires**
+  * `name`: string
+* **Returns**
+  * `success`: boolean
+  * `game`: a Game object (only when successful)
+
+###Start Game
+Start a game. Can only start a game that hasn't been started yet. This will create a deck and deal cards to players.
+* `POST /api/start/<int:gameId>`
+* **Returns**
+  * `success`: boolean
+  * `game`: a Game object (only when successful)
+
+###Send Message
+Send a message to everyone in the game.
+* `POST /api/message/<int:gameId>`
+* **Requires**
+  * `name`: string
+  * `message`: string
+* **Returns**
+  * `success`: boolean
+
+##Game Actions
+###Give Hint
+Gives a hint to another player. Must be the player's turn to play. `hintType` can either be "number" or "colour".
+* `POST /api/hint/<hintType>/<int:gameId>`
+* **Requires**
+  * `name`: string
+  * `toName`: string
+  * `hint`: int/string
+* **Returns**
+  * `success`: boolean
+  * `cardsHinted`: list of ints (indices of the cards hinted)
