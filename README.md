@@ -1,12 +1,15 @@
 
 An implementation of Hanabi, a popular board game. Starts with a web client, but can be integrated with multiple platforms through the server API.
 
-# Dependencies
+# Requirements
 
-- PostgreSQL (Mac: install Postgres.app)
-- virtualenv is recommended
+* Server
+  * PostgreSQL (Mac: install Postgres.app)
+  * virtualenv is recommended
+* Client
+  * Socket.IO
 
-# Set-up to Run Locally
+# Running Locally
 
 To run on your local machine:
 
@@ -108,13 +111,12 @@ API calls will often return a game object as the response. Here is one for examp
         "turnsLeft": -1
     }
     
-The above response can be obtained through a `GET /api/get/4` call, a hanabi game that just begun. Some of the attributes are described below:
+Here's a call that could have generated the above response: `GET /api/get/4`. Some of the JSON fields are further discussed below:
 
-* `currentPlayer` indicates who's turn to play. The string will always match an element in `order` or `players`.
 * `discarded` is the discard pile, which consists of a list of card objects with the stucture like: `{"number": 4, "suit": "BLUE"}`. `played` and players' `hand` contains cards that exhibit the same structure.
 * `hasEnded` indicates the termination of the game. It will be set to true when an end game state has been detected.
 * `hasStarted` indicates the status of the game. It will be set to true by the host once enough players has joined.
-* `order` is set after the game has started. It is a random permutation of the players.
+* `order` is a random permutation of the players, governing the playing order. It is set after the start of the game.
 * `spectators` are users who are not participating in the game, but can message players and see the progression of the game. A user who enters the game will become a spectator first, and must join to become a player.
 * `turnsLeft` indicates how many turns are remianing before the end-game state. It will be -1 throughout the game until being set to 3 once the last card has been dealt.
 
@@ -126,69 +128,128 @@ The above response can be obtained through a `GET /api/get/4` call, a hanabi gam
 Get current game object.
 
 * `GET /api/game/<int:gameId>`
-* **Returns**: a Game object
+* **Response**: a Game object
 
 ###Create Game
 Create and join a new game.
 * `POST /api/create`
-* **Requires**
+* **Request**
   * `isRainbow`: boolean
   * `name`: string
-* **Returns**
+* **Response**
   * `success`: boolean
   * `game`: a Game object
 
 ###Enter Game
 Enter a game room. Player will become a spectator.
 * `POST /api/enter/<int:gameId>`
-* **Requires**
+* **Request**
   * `name`: string
-* **Returns**
+* **Response**
   * `success`: boolean
   * `game`: a Game object (only when successful)
+* **SocketIO Response**
+  * `enterGame`: string (spectators's name)
+  * `game`: a Game object
 
 ###Resume Game
 Resume or re-join a game. Player must be already a player or spectator prior to the call.
 * `GET /api/enter/<int:gameId>`
-* **Requires**
+* **Request**
   * `name`: string
-* **Returns**
+* **Response**
   * `success`: boolean
   * `game`: a Game object (only when successful)
+* **SocketIO Response**
+  * `joinGame`: string (spectators's name)
+  * `game`: a Game object
 
 ###Join Game
 Join a game. Player must be a spectator prior to the call. Will fail if number of joined players is at max (5).
 * `POST /api/join/<int:gameId>`
-* **Requires**
+* **Request**
   * `name`: string
-* **Returns**
+* **Response**
   * `success`: boolean
   * `game`: a Game object (only when successful)
+* **SocketIO Response**
+  * `resumeGame`: string (spectators's name)
+  * `game`: a Game object
 
 ###Start Game
 Start a game. Can only start a game that hasn't been started yet. This will create a deck and deal cards to players.
 * `POST /api/start/<int:gameId>`
-* **Returns**
+* **Response**
   * `success`: boolean
   * `game`: a Game object (only when successful)
+* **SocketIO Response**
+  * `gameStart`: boolean
+  * `game`: a Game object
 
 ###Send Message
 Send a message to everyone in the game.
 * `POST /api/message/<int:gameId>`
-* **Requires**
+* **Request**
   * `name`: string
   * `message`: string
-* **Returns**
+* **Response**
   * `success`: boolean
+* **SocketIO Response**
+  * `sendMessage`: object with fields:
+    * `message`: string
+    * `name`: string
 
 ##Game Actions
 ###Give Hint
 Gives a hint to another player. Must be the player's turn to play. `hintType` can either be "number" or "colour".
 * `POST /api/hint/<hintType>/<int:gameId>`
-* **Requires**
+* **Request**
   * `name`: string
   * `toName`: string
   * `hint`: int/string
-* **Returns**
+* **Response**
   * `success`: boolean
   * `cardsHinted`: list of ints (indices of the cards hinted)
+* **SocketIO Response**
+  * `giveHint`: object with fields:
+    * `hintType`: string (number/color)
+    * `hint`: int/string,
+    * `cardsHinted`: list of ints (indices of the cards hinted),
+    * `from`: string,
+    * `to`: string,
+    * `game`: a Game object
+
+###Discard Card
+* `POST /api/discard/<int:gameId>`
+* **Request**
+  * `name`: string
+  * `cardIndex`: int
+* **Response**
+  * `success`: boolean
+  * `game`: a Game object
+* **SocketIO Response**
+  * `discardCard`: object with fields:
+    * `name`: string
+    * `cardIndex`: int
+    * `game`: a Game object
+
+###Play Card
+* `POST /api/play/<int:gameId>`
+* **Request**
+  * `name`: string
+  * `cardIndex`: int
+* **Response**
+  * `success`: boolean
+  * `game`: a Game object
+* **SocketIO Response**
+  * `playCard`: object with fields:
+    * `name`: string
+    * `cardIndex`: int
+    * `game`: a Game object
+
+###End Game
+* `POST /api/end/<int:gameId>`
+* **Response**
+  * `success`: boolean
+* **SocketIO Response**
+  * `endGame`: boolean

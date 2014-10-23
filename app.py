@@ -87,7 +87,7 @@ def enterGame(gameId):
 
     game = getGame(gameId)
     socketio.send({
-        'enter_game': name,
+        'enterGame': name,
         'game': game,
         }, json=True, namespace='/socket/game/%d' % gameId)
     return jsonify(**{'success': True, 'game': game})
@@ -107,7 +107,7 @@ def joinGame(gameId):
         
         game = getGame(gameId)
         socketio.send({
-            'join_game': name,
+            'joinGame': name,
             'game': game,
             }, json=True, namespace='/socket/game/%d' % gameId)
         return jsonify(**{'success': True, 'game': game})
@@ -124,7 +124,7 @@ def resumeGame(gameId):
     if len(players) != 0:
         game = getGame(gameId)
         socketio.send({
-            'resume_game': name,
+            'resumeGame': name,
             'game': game,
             }, json=True, namespace='/socket/game/%d' % gameId)
         return jsonify(**{'success': True, 'game': game})
@@ -153,7 +153,7 @@ def startGame(gameId):
 
         game = getGame(gameId)
         socketio.send({
-            'game_start': True,
+            'gameStart': True,
             'game': game
             }, json=True, namespace='/socket/game/%d' % gameId)
         return jsonify(**{'success': True, 'game': game})
@@ -166,7 +166,7 @@ def sendMessage(gameId):
     name = request.form['name']
 
     socketio.send({
-        'send_message': {
+        'sendMessage': {
             'message': message,
             'name': name
         }}, json=True, namespace='/socket/game/%d' % gameId)
@@ -194,8 +194,8 @@ def giveHint(hintType, gameId):
         g.conn.commit()
 
         game = getGame(gameId)
-        socketio.send({'give_hint': {
-                "hint_type": hintType,
+        socketio.send({'giveHint': {
+                "hintType": hintType,
                 "hint": hint,
                 "cardsHinted": cardsHinted,
                 "from": name,
@@ -229,7 +229,7 @@ def discardCard(gameId):
     g.conn.commit()
 
     game = getGame(gameId)
-    socketio.send({'discard_card': {
+    socketio.send({'discardCard': {
         "name": name,
         "cardIndex": cardIndex,
         "game": game,
@@ -259,7 +259,7 @@ def playCard(gameId):
     g.conn.commit()
 
     game = getGame(gameId)
-    socketio.send({'play_card': {
+    socketio.send({'playCard': {
         "name": name,
         "cardIndex": cardIndex,
         "game": game
@@ -277,7 +277,7 @@ def endGame(gameId):
     g.cur.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
     g.conn.commit()
 
-    socketio.send({'end_game': True}, json=True, namespace='/socket/game/%d' % gameId)
+    socketio.send({'endGame': True}, json=True, namespace='/socket/game/%d' % gameId)
     return jsonify(**{'success': True})
 
 @app.route('/')

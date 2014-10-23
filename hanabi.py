@@ -62,7 +62,6 @@ def giveHint(game, toPlayer, hintType, hint):
     for idx, card in enumerate(toPlayer['hand']):
         if hintType == 'suit' and card['suit'] == hint:
             cardsHinted.append(idx)
-        print card['number'] == hint
         if hintType == 'number' and card['number'] == hint:
             cardsHinted.append(idx)
 
