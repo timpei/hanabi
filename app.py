@@ -54,6 +54,16 @@ def getGame(gameId):
 
     return encapsulate(game, gameId, players, spectators)
 
+@socketio.on('connect', namespace='/socket/game/1')
+def test_connect():
+    print('Client connected')
+    emit('my response', {'data': 'Connected'})
+
+@socketio.on('disconnect', namespace='/socket/game/1')
+def test_disconnect():
+    print('Client disconnected')
+
+
 @app.route('/api/game/<int:gameId>', methods=['GET'])
 def loadGame(gameId):
     return jsonify(**getGame(gameId))
