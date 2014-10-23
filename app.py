@@ -5,7 +5,7 @@ import urlparse
 import json
 import logging
 
-from flask import Flask, g, render_template, jsonify
+from flask import Flask, g, render_template, jsonify, request
 from flask.ext.socketio import SocketIO, emit
 
 import hanabi
