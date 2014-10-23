@@ -123,6 +123,9 @@ Here's a call that could have generated the above response: `GET /api/get/4`. So
 # API Calls
 
 ##Game Room Actions
+
+In order to receive websocket payloads from SocketIO, the client must connect to the socket once he/she creates or enters the game. The socket namespace will be `http://<domain_name>/socket/game/<game_id>`
+
 ###Get Game
 
 Get current game object.
