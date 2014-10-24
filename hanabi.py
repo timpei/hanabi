@@ -1,14 +1,23 @@
 import json
 from random import shuffle
 
+SUITS = ['WHITE', 'YELLOW', 'RED', 'BLUE', 'GREEN']
+SUITS_WITH_RAINBOW =  ['WHITE', 'YELLOW', 'RED', 'BLUE', 'GREEN', 'RAINBOW']
+NUMBERS = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5]
 MAX_HINTS = 8
 MAX_LIVES = 3
+HAND_SIZE = {
+    2: 5,
+    3: 5,
+    4: 4,
+    5: 4
+}
 
-def newGameObject():
+def newGameObject(isRainbow):
     newGame = {
         "numCardsRemaining": 0,
         "currentPlayer": "",
-        "isRainbow": False,
+        "isRainbow": isRainbow,
         "hasStarted": False,
         "hasEnded": False,
         "turnsLeft": -1,
@@ -30,12 +39,9 @@ def newCardObject(suit, number):
 
 def newShuffledDeck(isRainbow):
     deck = []
-    suits = ['WHITE', 'YELLOW', 'RED', 'BLUE', 'GREEN']
-    numbers = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5]
-    if isRainbow:
-        suits.append('RAINBOW')
+    suits = SUITS_WITH_RAINBOW if isRainbow else SUITS
     for suit in suits:
-        for number in numbers:
+        for number in NUMBERS:
             deck.append(newCardObject(suit, number))
 
     shuffle(deck)
@@ -43,7 +49,7 @@ def newShuffledDeck(isRainbow):
 
 def startGameAndGetDeck(game, players):
     deck = newShuffledDeck(game['isRainbow'])
-    handSize = 5 if len(players) < 4 else 4
+    handSize = HAND_SIZE[len(players)]
 
     for i in xrange(handSize):
         for player in players:

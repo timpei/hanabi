@@ -16,6 +16,7 @@ DEBUG = True
 app = Flask(__name__)
 app.config.from_object(__name__)
 socketio = SocketIO(app)
+logging.basicConfig()
 
 def connect_db():
     urlparse.uses_netloc.append("postgres")
@@ -59,9 +60,8 @@ def loadGame(gameId):
 
 @app.route('/api/create', methods=['POST'])
 def createGame():
-
-    game = hanabi.newGameObject()
-    game['isRainbow'] = False if request.form['rainbow'] == "false" else True
+    rainbow = False if request.form['rainbow'].lower() == "false" else True
+    game = hanabi.newGameObject(rainbow)
     g.cur.execute("INSERT INTO games (gameJSON) VALUES ('%s') RETURNING id" % json.dumps(game))
     gameId = g.cur.fetchone()[0]
     g.conn.commit()
@@ -86,10 +86,10 @@ def enterGame(gameId):
     g.conn.commit()
 
     game = getGame(gameId)
-    socketio.send({
+    socketio.emit('%d' % gameId, {
         'enterGame': name,
         'game': game,
-        }, json=True, namespace='/socket/game/%d' % gameId)
+        }, json=True)
     return jsonify(**{'success': True, 'game': game})
 
 @app.route('/api/join/<int:gameId>', methods=['POST'])
@@ -106,10 +106,10 @@ def joinGame(gameId):
         g.conn.commit()
         
         game = getGame(gameId)
-        socketio.send({
+        socketio.emit('%d' % gameId, {
             'joinGame': name,
             'game': game,
-            }, json=True, namespace='/socket/game/%d' % gameId)
+            }, json=True)
         return jsonify(**{'success': True, 'game': game})
     else:
         return jsonify(**{'success': False})
@@ -123,10 +123,10 @@ def resumeGame(gameId):
     
     if len(players) != 0:
         game = getGame(gameId)
-        socketio.send({
+        socketio.emit('%d' % gameId, {
             'resumeGame': name,
             'game': game,
-            }, json=True, namespace='/socket/game/%d' % gameId)
+            }, json=True)
         return jsonify(**{'success': True, 'game': game})
     else:
         return jsonify(**{'success': False})
@@ -152,10 +152,10 @@ def startGame(gameId):
         g.conn.commit()   
 
         game = getGame(gameId)
-        socketio.send({
+        socketio.emit('%d' % gameId, {
             'gameStart': True,
             'game': game
-            }, json=True, namespace='/socket/game/%d' % gameId)
+            }, json=True)
         return jsonify(**{'success': True, 'game': game})
     else:
         return jsonify(**{'success': False})
@@ -165,11 +165,11 @@ def sendMessage(gameId):
     message = request.form['message']
     name = request.form['name']
 
-    socketio.send({
+    socketio.emit('%d' % gameId, {
         'sendMessage': {
             'message': message,
             'name': name
-        }}, json=True, namespace='/socket/game/%d' % gameId)
+        }}, json=True)
     return jsonify(**{'success': True})
 
 @app.route('/api/hint/<hintType>/<int:gameId>', methods=['POST'])
@@ -194,14 +194,14 @@ def giveHint(hintType, gameId):
         g.conn.commit()
 
         game = getGame(gameId)
-        socketio.send({'giveHint': {
+        socketio.emit('%d' % gameId, {'giveHint': {
                 "hintType": hintType,
                 "hint": hint,
                 "cardsHinted": cardsHinted,
                 "from": name,
                 "to": toName,
                 "game": game
-            }}, json=True, namespace='/socket/game/%d' % gameId)
+            }}, json=True)
         return jsonify(**{'success': True, 'cardsHinted': cardsHinted})
     else:
         return jsonify(**{'success': False})
@@ -229,11 +229,11 @@ def discardCard(gameId):
     g.conn.commit()
 
     game = getGame(gameId)
-    socketio.send({'discardCard': {
+    socketio.emit('%d' % gameId, {'discardCard': {
         "name": name,
         "cardIndex": cardIndex,
         "game": game,
-        }}, json=True, namespace='/socket/game/%d' % gameId)
+        }}, json=True)
     return jsonify(**{'success': True, 'game': game})
 
 @app.route('/api/play/<int:gameId>', methods=['POST'])
@@ -259,11 +259,11 @@ def playCard(gameId):
     g.conn.commit()
 
     game = getGame(gameId)
-    socketio.send({'playCard': {
+    socketio.emit('%d' % gameId, {'playCard': {
         "name": name,
         "cardIndex": cardIndex,
         "game": game
-        }}, json=True, namespace='/socket/game/%d' % gameId)
+        }}, json=True)
     return jsonify(**{'success': True, 'game': game})
 
 @app.route('/api/end/<int:gameId>', methods=['POST'])
@@ -277,7 +277,7 @@ def endGame(gameId):
     g.cur.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
     g.conn.commit()
 
-    socketio.send({'endGame': True}, json=True, namespace='/socket/game/%d' % gameId)
+    socketio.emit('%d' % gameId, {'endGame': True}, json=True)
     return jsonify(**{'success': True})
 
 @app.route('/')
