@@ -15,9 +15,25 @@
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
 <script type="text/javascript" charset="utf-8">
     var socket = io.connect('http://' + document.domain + ':' + location.port);
-    socket.on('connect', function() {
-        alert("Connected!")
+
+    socket.on('connect', function(msg) {
+      console.log("CONNECTED!")
     });
+
+    socket.on('message', function(msg) {
+      console.log(msg);
+    })
+
+    var post = function(url, data, callback) {
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/message/1', true);
+      xhr.onload = function () {
+          // do something to response
+          console.log(this.responseText);
+      };
+      xhr.send(data);
+    }
 </script>
 <body>
 </body>

@@ -6,6 +6,7 @@ SUITS_WITH_RAINBOW =  ['WHITE', 'YELLOW', 'RED', 'BLUE', 'GREEN', 'RAINBOW']
 NUMBERS = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5]
 MAX_HINTS = 8
 MAX_LIVES = 3
+MAX_PLAYERS = 5
 HAND_SIZE = {
     2: 5,
     3: 5,
