@@ -122,7 +122,7 @@ Here's a call that could have generated the above response: `GET /api/get/4`. So
 
 # API Calls
 
-##Game Room Actions
+##REST
 
 In order to receive websocket payloads from SocketIO, the client must connect to the socket once he/she creates or enters the game. The socket namespace will be `http://<domain_name>/socket/game/<game_id>`
 
@@ -143,6 +143,7 @@ Create and join a new game.
   * `success`: boolean
   * `game`: a Game object
 
+##Socket.IO
 ###Enter Game
 Enter a game room. Player will become a spectator.
 * `POST /api/enter/<int:gameId>`
@@ -202,7 +203,6 @@ Send a message to everyone in the game.
     * `message`: string
     * `name`: string
 
-##Game Actions
 ###Give Hint
 Gives a hint to another player. Must be the player's turn to play. `hintType` can either be "number" or "colour".
 * `POST /api/hint/<hintType>/<int:gameId>`
