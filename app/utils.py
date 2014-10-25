@@ -41,11 +41,14 @@ def eventInject(logger=False, db=False):
         @wraps(func)
         def wrapper(msg):
             print "%s [socketio]: %s request with payload: %s" % (time.asctime(time.localtime(time.time())), func.__name__, msg)
-            result = func(msg, db=dbInst)
             if db:
-                dbInst.close()
+                result = func(msg, db=dbInst)
+            else:
+                result = func(msg)
             return result
         return wrapper
+        if db:
+            dbInst.close()
     return decorate
 
 

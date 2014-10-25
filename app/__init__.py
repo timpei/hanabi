@@ -43,7 +43,7 @@ def createGame(msg, db):
 @socketio.on('enterGame')
 @eventInject(logger=True, db=True)
 def enterGame(msg, db):
-    gameId = int(msg['gameId'])
+    gameId = msg['gameId']
     name = msg['name']
 
     sameNameExists = False
@@ -57,10 +57,10 @@ def enterGame(msg, db):
                     'event': 'enterGame',
                     'reason': 'same name exists'
                     }
-                }, json=True, room=gameId)
+                }, json=True)
             break
 
-    if sameNameExists:
+    if not sameNameExists:
         db.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
         game = getGame(gameId)
         join_room(gameId)
@@ -99,7 +99,7 @@ def joinGame(msg, db):
                 'event': 'joinGame',
                 'reason': 'max players exceeded'
                 }
-            }, json=True, room=gameId)
+            }, json=True)
         
 
 @socketio.on('resumeGame')
@@ -111,6 +111,7 @@ def resumeGame(msg, db):
     players = db.fetchall("SELECT name FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
     
     if len(players) != 0:
+        join_room(gameId)
         game = getGame(gameId)
         send({
             'event': 'resumeGame',
@@ -120,13 +121,12 @@ def resumeGame(msg, db):
                 }
             }, json=True, room=gameId)
     else:
-        join_room(gameId)
         send({
             'error': {
                 'event': 'resumeGame',
                 'reason': 'no player with name exists'
                 }
-            }, json=True, room=gameId)
+            }, json=True)
 
 @socketio.on('startGame')
 @eventInject(logger=True, db=True)
@@ -162,12 +162,12 @@ def startGame(msg, db):
                 'event': 'startGame',
                 'reason': 'game already started'
                 }
-            }, json=True, room=gameId)
+            }, json=True)
         
 
 @socketio.on('sendMessage')
 @eventInject(logger=True)
-def sendMessage(msg, db):
+def sendMessage(msg):
     gameId = msg['gameId']
     message = msg['message']
     name = msg['name']
@@ -187,7 +187,7 @@ def giveHint():
     hintType = msg['hintType']
     name = msg['name']
     toName = msg['toName']
-    hint = int(msg['hint']) if hintType == 'number' else msg['hint']
+    hint = int(msg['hint']) if hintType == 'NUMBER' else msg['hint']
 
     gameRes = db.fetchone('SELECT gameJSON FROM games WHERE id=%d; ' % gameId)
     toPlayerRes = db.fetchone("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, toName))
@@ -218,7 +218,7 @@ def giveHint():
                 'event': 'giveHint',
                 'reason': 'invalid hint'
                 }
-            }, json=True, room=gameId)
+            }, json=True)
         
 
 @socketio.on('discardCard')
@@ -226,7 +226,7 @@ def giveHint():
 def discardCard(msg, db):
     gameId = msg['gameId']
     name = msg['name']
-    cardIndex = int(msg['cardIndex'])
+    cardIndex = msg['cardIndex']
 
     gameRes = db.fetchone('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
     playerRes = db.fetchone("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
@@ -258,7 +258,7 @@ def discardCard(msg, db):
 def playCard(gameId):
     gameId = msg['gameId']
     name = msg['name']
-    cardIndex = int(msg['cardIndex'])
+    cardIndex = msg['cardIndex']
 
     gameRes = db.fetchone('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
     playerRes = db.fetchone("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
@@ -305,6 +305,10 @@ def endGame(msg, db):
 @app.route('/')
 def index():
     return make_response(open('%s/templates/index.html' % BASE_DIR).read())
+
+@app.route('/test')
+def test():
+    return make_response(open('%s/templates/test.html' % BASE_DIR).read())
 
 def run():
     port = int(os.environ.get('PORT', 5000))
