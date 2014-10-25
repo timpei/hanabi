@@ -6,7 +6,7 @@ from flask import Flask, render_template, jsonify, request
 from flask.ext.socketio import SocketIO, send, join_room, leave_room
 
 import hanabi
-from app_utils import parsePlayer, DatabaseService, getGame
+from utils import parsePlayer, DatabaseService, getGame
 
 DEBUG = True
 
@@ -315,6 +315,6 @@ def endGame(msg):
 def index():
     return render_template('index.html')
 
-if __name__ == '__main__':
+def run():
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, host='0.0.0.0', port=port)
