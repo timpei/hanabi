@@ -6,7 +6,7 @@ from flask import Flask, jsonify, request, make_response
 from flask.ext.socketio import SocketIO, send, join_room, leave_room
 
 import hanabi
-from utils import parsePlayer, DatabaseService, getGame
+from utils import parsePlayer, getGame, eventInject
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEBUG = True
@@ -21,15 +21,14 @@ def loadGame(gameId):
     return jsonify(**getGame(gameId))
 
 @socketio.on('createGame')
-def createGame(msg):
-    db = DatabaseService()
+@eventInject(logger=True, db=True)
+def createGame(msg, db):
     rainbow = msg['isRainbow']
     name = msg['name']
 
     game = hanabi.newGameObject(rainbow)
     gameId = db.executeWithId("INSERT INTO games (gameJSON) VALUES ('%s') RETURNING id" % json.dumps(game))
     db.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
-    db.close()
 
     join_room(gameId)
     game = getGame(gameId)
@@ -42,8 +41,8 @@ def createGame(msg):
         }, json=True, room=gameId)
 
 @socketio.on('enterGame')
-def enterGame(msg):
-    db = DatabaseService()
+@eventInject(logger=True, db=True)
+def enterGame(msg, db):
     gameId = int(msg['gameId'])
     name = msg['name']
 
@@ -73,11 +72,9 @@ def enterGame(msg):
                 }
             }, json=True, room=gameId)
 
-    db.close()
-
 @socketio.on('joinGame')
-def joinGame(msg):
-    db = DatabaseService()
+@eventInject(logger=True, db=True)
+def joinGame(msg, db):
     gameId = msg['gameId']
     name = msg['name']
 
@@ -104,16 +101,14 @@ def joinGame(msg):
                 }
             }, json=True, room=gameId)
         
-    db.close()
 
 @socketio.on('resumeGame')
-def resumeGame(msg):
-    db = DatabaseService()
+@eventInject(logger=True, db=True)
+def resumeGame(msg, db):
     gameId = msg['gameId']
     name = msg['name']
 
     players = db.fetchall("SELECT name FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
-    db.close()
     
     if len(players) != 0:
         game = getGame(gameId)
@@ -134,8 +129,8 @@ def resumeGame(msg):
             }, json=True, room=gameId)
 
 @socketio.on('startGame')
-def startGame(msg):
-    db = DatabaseService()
+@eventInject(logger=True, db=True)
+def startGame(msg, db):
     gameId = msg['gameId']
 
     gameResult = db.fetchone('SELECT gameJSON FROM games WHERE id=%d; ' % gameId)
@@ -169,10 +164,10 @@ def startGame(msg):
                 }
             }, json=True, room=gameId)
         
-    db.close()
 
 @socketio.on('sendMessage')
-def sendMessage(msg):
+@eventInject(logger=True)
+def sendMessage(msg, db):
     gameId = msg['gameId']
     message = msg['message']
     name = msg['name']
@@ -186,8 +181,8 @@ def sendMessage(msg):
         }, json=True, room=gameId)
 
 @socketio.on('giveHint')
+@eventInject(logger=True, db=True)
 def giveHint():
-    db = DatabaseService()
     gameId = msg['gameId']
     hintType = msg['hintType']
     name = msg['name']
@@ -225,11 +220,10 @@ def giveHint():
                 }
             }, json=True, room=gameId)
         
-    db.close()
 
 @socketio.on('discardCard')
-def discardCard(msg):
-    db = DatabaseService()
+@eventInject(logger=True, db=True)
+def discardCard(msg, db):
     gameId = msg['gameId']
     name = msg['name']
     cardIndex = int(msg['cardIndex'])
@@ -248,7 +242,6 @@ def discardCard(msg):
     queries.append("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
     queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
     db.bulkExecute(queries)
-    db.close()
 
     game = getGame(gameId)
     send({
@@ -261,8 +254,8 @@ def discardCard(msg):
         }, json=True, room=gameId)
 
 @socketio.on('playCard')
+@eventInject(logger=True, db=True)
 def playCard(gameId):
-    db = DatabaseService()
     gameId = msg['gameId']
     name = msg['name']
     cardIndex = int(msg['cardIndex'])
@@ -281,9 +274,7 @@ def playCard(gameId):
     queries.append("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
     queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
     db.bulkExecute(queries)
-    db.close()
         
-    db.close()
 
     game = getGame(gameId)
     send({
@@ -296,8 +287,8 @@ def playCard(gameId):
         }, json=True, room=gameId)
 
 @socketio.on('endGame')
-def endGame(msg):
-    db = DatabaseService()
+@eventInject(logger=True, db=True)
+def endGame(msg, db):
     gameId = msg['gameId']
 
     gameRes = db.fetchone('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
@@ -305,7 +296,6 @@ def endGame(msg):
 
     hanabi.giveUp(game)
     db.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
-    db.close()
 
     send({
         'event': 'endGame',

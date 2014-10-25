@@ -3,6 +3,8 @@ import urlparse
 import psycopg2
 import os
 
+from functools import wraps
+
 def parsePlayer(playerRes):
     return {
         'name': playerRes[0],
@@ -13,6 +15,37 @@ def parseSpectator(spectatorsRes):
     return {
         'name': spectatorsRes[0]
     }
+
+def getGame(gameId):
+    db = DatabaseService()
+    game = json.loads(db.fetchone('SELECT gameJSON FROM games WHERE id = %d; ' % gameId)[0])
+    players = db.fetchall('SELECT name, handJSON FROM players WHERE gameId = %d AND joined=1; ' % gameId)
+    spectators = db.fetchall('SELECT name FROM players WHERE gameId = %d AND joined=0; ' % gameId)
+    db.close()
+
+    game['id'] = gameId
+    game['players'] = []
+    game['spectators'] = []
+    for player in players:
+        game['players'].append(parsePlayer(player))
+    for spectator in spectators:
+        game['spectators'].append(parseSpectator(spectator))
+
+    return game
+
+def eventInject(logger=False, db=False):
+    def decorate(func):
+        if db:
+            dbInst = DatabaseService()
+        @wraps(func)
+        def wrapper(msg):
+            print "%s request with payload: %s" % (func.__name__, msg)
+            return func(msg, db=dbInst)
+        if db:
+            dbInst.close()
+        return wrapper
+    return decorate
+
 
 class DatabaseService:
     def connect_db(self):
@@ -57,20 +90,3 @@ class DatabaseService:
     def close(self):
         self.conn.close()
         self.cur.close()
-
-def getGame(gameId):
-    db = DatabaseService()
-    game = json.loads(db.fetchone('SELECT gameJSON FROM games WHERE id = %d; ' % gameId)[0])
-    players = db.fetchall('SELECT name, handJSON FROM players WHERE gameId = %d AND joined=1; ' % gameId)
-    spectators = db.fetchall('SELECT name FROM players WHERE gameId = %d AND joined=0; ' % gameId)
-    db.close()
-
-    game['id'] = gameId
-    game['players'] = []
-    game['spectators'] = []
-    for player in players:
-        game['players'].append(parsePlayer(player))
-    for spectator in spectators:
-        game['spectators'].append(parseSpectator(spectator))
-
-    return game
