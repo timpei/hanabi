@@ -2,6 +2,7 @@ import json
 import urlparse
 import psycopg2
 import os
+import time
 
 from functools import wraps
 
@@ -39,10 +40,11 @@ def eventInject(logger=False, db=False):
             dbInst = DatabaseService()
         @wraps(func)
         def wrapper(msg):
-            print "%s request with payload: %s" % (func.__name__, msg)
-            return func(msg, db=dbInst)
-        if db:
-            dbInst.close()
+            print "%s [socketio]: %s request with payload: %s" % (time.asctime(time.localtime(time.time())), func.__name__, msg)
+            result = func(msg, db=dbInst)
+            if db:
+                dbInst.close()
+            return result
         return wrapper
     return decorate
 
