@@ -2,7 +2,7 @@ import os, sys
 import json
 import logging
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from flask.ext.socketio import SocketIO, send, join_room, leave_room
 
 import hanabi
@@ -313,7 +313,7 @@ def endGame(msg):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return make_response(open('app/templates/index.html').read())
 
 def run():
     port = int(os.environ.get('PORT', 5000))
