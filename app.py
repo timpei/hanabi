@@ -91,6 +91,7 @@ def joinGame(msg):
         send({
             'event': 'joinGame',
             'payload' : {
+                'name': name,
                 'game': game,
                 }
             }, json=True, room=gameId)
@@ -118,6 +119,7 @@ def resumeGame(msg):
         send({
             'event': 'resumeGame',
             'payload' : {
+                'name': name,
                 'game': game,
                 }
             }, json=True, room=gameId)

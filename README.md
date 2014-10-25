@@ -124,135 +124,259 @@ Here's a call that could have generated the above response: `GET /api/get/4`. So
 
 ##REST
 
-In order to receive websocket payloads from SocketIO, the client must connect to the socket once he/she creates or enters the game. The socket namespace will be `http://<domain_name>/socket/game/<game_id>`
-
 ###Get Game
-
 Get current game object.
-
 * `GET /api/game/<int:gameId>`
 * **Response**: a Game object
 
+##Socket.IO
+
+In order to receive websocket payloads from SocketIO, the client must connect to the socket once he/she creates or enters the game. The socket namespace is the global namespace: `http://<domain_name>`. All emits from the server will be sent with the 'message' event.
+
 ###Create Game
 Create and join a new game.
-* `POST /api/create`
-* **Request**
-  * `isRainbow`: boolean
-  * `name`: string
-* **Response**
-  * `success`: boolean
-  * `game`: a Game object
 
-##Socket.IO
+* **Send**
+```javascript
+emit('createGame', {
+    isRainbow: boolean
+    name: string
+}
+```
+* **Broadcast**
+```javascript
+{
+    'event': 'enterGame',
+    'payload' : {
+        'name': string,
+        'game': a Game object,
+        }
+}
+```
+
 ###Enter Game
 Enter a game room. Player will become a spectator.
-* `POST /api/enter/<int:gameId>`
-* **Request**
-  * `name`: string
-* **Response**
-  * `success`: boolean
-  * `game`: a Game object (only when successful)
-* **SocketIO Response**
-  * `enterGame`: string (spectators's name)
-  * `game`: a Game object
+* **Send**
+```
+emit('enterGame', {
+    gameId: int
+    name: string
+}
+```
+* **Broadcast**
+```javascript
+{
+    'event': 'enterGame',
+    'payload' : {
+        'name': string,
+        'game': a Game object,
+        }
+}
+```
+* **Exception**
+```javascript
+{
+    'error': {
+        'event': 'enterGame',
+        'reason': 'same name exists'
+        }
+}
+```
 
 ###Resume Game
 Resume or re-join a game. Player must be already a player or spectator prior to the call.
-* `GET /api/enter/<int:gameId>`
-* **Request**
-  * `name`: string
-* **Response**
-  * `success`: boolean
-  * `game`: a Game object (only when successful)
-* **SocketIO Response**
-  * `joinGame`: string (spectators's name)
-  * `game`: a Game object
-
+* **Send**
+```
+emit('resumeGame', {
+    gameId: int
+    name: string
+}
+```
+* **Broadcast**
+```javascript
+{
+    'event': 'resumeGame',
+    'payload' : {
+        'name': string,
+        'game': a Game object,
+        }
+}
+```
+* **Exception**
+```javascript
+{
+'error': {
+    'event': 'resumeGame',
+    'reason': 'no player with name exists'
+    }
+}
+```
 ###Join Game
 Join a game. Player must be a spectator prior to the call. Will fail if number of joined players is at max (5).
-* `POST /api/join/<int:gameId>`
-* **Request**
-  * `name`: string
-* **Response**
-  * `success`: boolean
-  * `game`: a Game object (only when successful)
-* **SocketIO Response**
-  * `resumeGame`: string (spectators's name)
-  * `game`: a Game object
+* **Send**
+```
+emit('joinGame', {
+    gameId: int
+    name: string
+}
+```
+* **Broadcast**
+```javascript
+{
+    'event': 'joinGame',
+    'payload' : {
+        'name': string,
+        'game': a Game object,
+        }
+}
+```
+* **Exception**
+```javascript
+{
+    'error': {
+        'event': 'joinGame',
+        'reason': 'max players exceeded'
+        }
+}
+```
 
 ###Start Game
 Start a game. Can only start a game that hasn't been started yet. This will create a deck and deal cards to players.
-* `POST /api/start/<int:gameId>`
-* **Response**
-  * `success`: boolean
-  * `game`: a Game object (only when successful)
-* **SocketIO Response**
-  * `gameStart`: boolean
-  * `game`: a Game object
+* **Send**
+```
+emit('startGame', {
+    gameId: int
+}
+```
+* **Broadcast**
+```javascript
+{
+    'event': 'startGame',
+    'payload' : {
+        'game': a Game object,
+        }
+}
+```
+* **Exception**
+```javascript
+{
+    'error': {
+        'event': 'startGame',
+        'reason': 'game already started'
+        }
+}
+```
 
 ###Send Message
 Send a message to everyone in the game.
-* `POST /api/message/<int:gameId>`
-* **Request**
-  * `name`: string
-  * `message`: string
-* **Response**
-  * `success`: boolean
-* **SocketIO Response**
-  * `sendMessage`: object with fields:
-    * `message`: string
-    * `name`: string
+* **Send**
+```
+emit('sendMessage', {
+    gameId: int,
+    name: string,
+    message: string
+}
+```
+* **Broadcast**
+```javascript
+{
+    'event': 'sendMessage',
+    'payload' : {
+        'message': string,
+        'name': string
+        }
+}
+```
 
 ###Give Hint
 Gives a hint to another player. Must be the player's turn to play. `hintType` can either be "number" or "colour".
-* `POST /api/hint/<hintType>/<int:gameId>`
-* **Request**
-  * `name`: string
-  * `toName`: string
-  * `hint`: int/string
-* **Response**
-  * `success`: boolean
-  * `cardsHinted`: list of ints (indices of the cards hinted)
-* **SocketIO Response**
-  * `giveHint`: object with fields:
-    * `hintType`: string (number/color)
-    * `hint`: int/string,
-    * `cardsHinted`: list of ints (indices of the cards hinted),
-    * `from`: string,
-    * `to`: string,
-    * `game`: a Game object
+* **Send**
+```
+emit('giveHint', {
+    gameId: int,
+    hintType: string,
+    name: string,
+    toName: string,
+    hint: [string, int]
+}
+```
+* **Broadcast**
+```javascript
+{
+    'event': 'giveHint',
+    'payload' : {
+        "hintType": string,
+        "hint": [string, int],
+        "cardsHinted": list(int),
+        "from": string,
+        "to": string,
+        "game": a Game object
+        }
+}
+```
+* **Exception**
+```javascript
+{
+    'error': {
+        'event': 'giveHint',
+        'reason': 'invalid hint'
+        }
+}
+```
 
 ###Discard Card
-* `POST /api/discard/<int:gameId>`
-* **Request**
-  * `name`: string
-  * `cardIndex`: int
-* **Response**
-  * `success`: boolean
-  * `game`: a Game object
-* **SocketIO Response**
-  * `discardCard`: object with fields:
-    * `name`: string
-    * `cardIndex`: int
-    * `game`: a Game object
+* **Send**
+```
+emit('discardCard', {
+    gameId: int,
+    name: string,
+    cardIndex: int
+}
+```
+* **Broadcast**
+```javascript
+{
+    'event': 'discardCard',
+    'payload' : {
+        "name": string,
+        "cardIndex": int,
+        "game": a Game object,
+        }
+}
+```
 
 ###Play Card
-* `POST /api/play/<int:gameId>`
-* **Request**
-  * `name`: string
-  * `cardIndex`: int
-* **Response**
-  * `success`: boolean
-  * `game`: a Game object
-* **SocketIO Response**
-  * `playCard`: object with fields:
-    * `name`: string
-    * `cardIndex`: int
-    * `game`: a Game object
+* **Send**
+```
+emit('playCard', {
+    gameId: int,
+    name: string,
+    cardIndex: int
+}
+```
+* **Broadcast**
+```javascript
+{
+    'event': 'playCard',
+    'payload' : {
+        "name": string,
+        "cardIndex": int,
+        "game": a Game object,
+        }
+}
+```
 
 ###End Game
-* `POST /api/end/<int:gameId>`
-* **Response**
-  * `success`: boolean
-* **SocketIO Response**
-  * `endGame`: boolean
+* **Send**
+```
+emit('endGame', {
+    gameId: int,
+}
+```
+* **Broadcast**
+```javascript
+{
+    'event': 'endGame',
+    'payload' : {}
+}
+```
