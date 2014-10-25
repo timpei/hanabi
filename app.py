@@ -19,6 +19,51 @@ app.config.from_object(__name__)
 socketio = SocketIO(app)
 logging.basicConfig()
 
+class DatabaseService:
+    def connect_db(self):
+        urlparse.uses_netloc.append("postgres")
+        url = urlparse.urlparse(os.environ["DATABASE_URL"])
+        conn = psycopg2.connect(
+            database=url.path[1:],
+            user=url.username,
+            password=url.password,
+            host=url.hostname,
+            port=url.port
+        )
+        return conn
+
+    def __init__(self):
+        self.conn = connect_db()
+        self.cur = self.conn.cursor()
+
+    def fetchone(self, query):
+        self.cur.execute(query)
+        return self.cur.fetchone()
+
+    def fetchall(self, query):
+        self.cur.execute(query)
+        return self.cur.fetchall()
+
+    def execute(self, query):
+        self.cur.execute(query)
+        self.conn.commit()
+
+    def bulkExecute(self, queries):
+        for query in queries:
+            self.cur.execute(query)
+        self.conn.commit()
+
+    def executeWithId(self, query):
+        self.cur.execute(query)
+        ret = self.cur.fetchone()[0]
+        self.conn.commit()
+        return ret
+
+    def close(self):
+        self.conn.close()
+        self.cur.close()
+
+
 def connect_db():
     urlparse.uses_netloc.append("postgres")
     url = urlparse.urlparse(os.environ["DATABASE_URL"])
@@ -31,27 +76,12 @@ def connect_db():
     )
     return conn
 
-@app.before_request
-def before_request():
-    g.conn = connect_db()
-    g.cur = g.conn.cursor()
-
-@app.teardown_request
-def teardown_request(exception):
-    db = getattr(g, 'db', None)
-    if db is not None:
-        db.close()
-    cur = getattr(g, 'cur', None)
-    if cur is not None:
-        cur.close()
-
 def getGame(gameId):
-    g.cur.execute('SELECT gameJSON FROM games WHERE id = %d; ' % gameId)
-    game = json.loads(g.cur.fetchone()[0])
-    g.cur.execute('SELECT name, handJSON FROM players WHERE gameId = %d AND joined=1; ' % gameId)
-    players = g.cur.fetchall()
-    g.cur.execute('SELECT name FROM players WHERE gameId = %d AND joined=0; ' % gameId)
-    spectators = g.cur.fetchall()
+    db = DatabaseService()
+    game = json.loads(db.fetchone('SELECT gameJSON FROM games WHERE id = %d; ' % gameId)[0])
+    players = db.fetchall('SELECT name, handJSON FROM players WHERE gameId = %d AND joined=1; ' % gameId)
+    spectators = db.fetchall('SELECT name FROM players WHERE gameId = %d AND joined=0; ' % gameId)
+    db.close()
 
     return encapsulate(game, gameId, players, spectators)
 
@@ -61,16 +91,14 @@ def loadGame(gameId):
 
 @socketio.on('createGame')
 def createGame(msg):
+    db = DatabaseService()
     rainbow = False if msg['rainbow'].lower() == "false" else True
     name = msg['name']
 
     game = hanabi.newGameObject(rainbow)
-    g.cur.execute("INSERT INTO games (gameJSON) VALUES ('%s') RETURNING id" % json.dumps(game))
-    gameId = g.cur.fetchone()[0]
-    g.conn.commit()
-
-    g.cur.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
-    g.conn.commit()
+    gameId = db.executeWithId("INSERT INTO games (gameJSON) VALUES ('%s') RETURNING id" % json.dumps(game))
+    db.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
+    db.close()
 
     join_room(gameId)
     game = getGame(gameId)
@@ -84,13 +112,12 @@ def createGame(msg):
 
 @socketio.on('enterGame')
 def enterGame(msg):
+    db = DatabaseService()
     gameId = int(msg['gameId'])
     name = msg['name']
 
     sameNameExists = False
-
-    g.cur.execute('SELECT name, handJSON FROM players WHERE gameId = %d; ' % gameId)
-    players = [parsePlayer(i) for i in g.cur.fetchall()]
+    players = [parsePlayer(i) for i in db.fetchall('SELECT name, handJSON FROM players WHERE gameId = %d; ' % gameId)]
 
     for player in players:
         if player['name'] == name:
@@ -104,9 +131,7 @@ def enterGame(msg):
             break
 
     if sameNameExists:
-        g.cur.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
-        g.conn.commit()
-
+        db.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
         game = getGame(gameId)
         join_room(gameId)
         send({
@@ -117,20 +142,20 @@ def enterGame(msg):
                 }
             }, json=True, room=gameId)
 
+    db.close()
+
 @socketio.on('joinGame')
 def joinGame(msg):
+    db = DatabaseService()
     gameId = msg['gameId']
     name = msg['name']
 
-    g.cur.execute('SELECT COUNT(id) FROM players WHERE gameId=%d AND joined=1; ' % gameId)
-    numPlayers = g.cur.fetchone()[0]
-    g.cur.execute('SELECT gameJSON FROM games WHERE id=%d; ' % gameId)
-    gameRes = g.cur.fetchone()
+    numPlayers = db.fetchone('SELECT COUNT(id) FROM players WHERE gameId=%d AND joined=1; ' % gameId)[0]
+    gameRes = db.fetchone('SELECT gameJSON FROM games WHERE id=%d; ' % gameId)
     game = json.loads(gameRes[0])
 
     if numPlayers < hanabi.MAX_PLAYERS and not game['hasStarted']:
-        g.cur.execute("UPDATE players SET joined=1 WHERE gameId=%d AND name='%s'" % (gameId, name))
-        g.conn.commit()
+        db.execute("UPDATE players SET joined=1 WHERE gameId=%d AND name='%s'" % (gameId, name))
         
         game = getGame(gameId)
         send({
@@ -146,14 +171,17 @@ def joinGame(msg):
                 'reason': 'max players exceeded'
                 }
             }, json=True, room=gameId)
+        
+    db.close()
 
 @socketio.on('resumeGame')
 def resumeGame(msg):
+    db = DatabaseService()
     gameId = msg['gameId']
     name = msg['name']
 
-    g.cur.execute("SELECT name FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
-    players = g.cur.fetchall()
+    players = db.fetchall("SELECT name FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
+    db.close()
     
     if len(players) != 0:
         game = getGame(gameId)
@@ -174,12 +202,11 @@ def resumeGame(msg):
 
 @socketio.on('startGame')
 def startGame(msg):
+    db = DatabaseService()
     gameId = msg['gameId']
 
-    g.cur.execute('SELECT gameJSON FROM games WHERE id=%d; ' % gameId)
-    gameResult = g.cur.fetchone()
-    g.cur.execute('SELECT name, handJSON FROM players WHERE gameId = %d AND joined=1; ' % gameId)
-    players = g.cur.fetchall()
+    gameResult = db.fetchone('SELECT gameJSON FROM games WHERE id=%d; ' % gameId)
+    players = db.fetchall('SELECT name, handJSON FROM players WHERE gameId = %d AND joined=1; ' % gameId)
     game = json.loads(gameResult[0])
     players = [parsePlayer(i) for i in players]
 
@@ -187,11 +214,12 @@ def startGame(msg):
         game['hasStarted'] = True
 
         deck = hanabi.startGameAndGetDeck(game, players)
+        queries = []
         for player in players:
-            g.cur.execute("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
+            queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
             game['order'].append(player['name'])
-        g.cur.execute("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
-        g.conn.commit()   
+        queries.append("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
+        db.bulkExecute(queries)   
 
         game = getGame(gameId)
         send({
@@ -207,6 +235,8 @@ def startGame(msg):
                 'reason': 'game already started'
                 }
             }, json=True, room=gameId)
+        
+    db.close()
 
 @socketio.on('sendMessage')
 def sendMessage(msg):
@@ -224,16 +254,15 @@ def sendMessage(msg):
 
 @socketio.on('giveHint')
 def giveHint():
+    db = DatabaseService()
     gameId = msg['gameId']
     hintType = msg['hintType']
     name = msg['name']
     toName = msg['toName']
     hint = int(msg['hint']) if hintType == 'number' else msg['hint']
 
-    g.cur.execute('SELECT gameJSON FROM games WHERE id=%d; ' % gameId)
-    gameRes = g.cur.fetchone()
-    g.cur.execute("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, toName))
-    toPlayerRes = g.cur.fetchone()
+    gameRes = db.fetchone('SELECT gameJSON FROM games WHERE id=%d; ' % gameId)
+    toPlayerRes = db.fetchone("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, toName))
 
     game = json.loads(gameRes[0])
     toPlayer = parsePlayer(toPlayerRes)
@@ -241,8 +270,7 @@ def giveHint():
     if hanabi.canHint(game, name):
         cardsHinted = hanabi.giveHint(game, toPlayer, hintType, hint)
 
-        g.cur.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
-        g.conn.commit()
+        db.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
 
         game = getGame(gameId)
         send({
@@ -263,17 +291,18 @@ def giveHint():
                 'reason': 'invalid hint'
                 }
             }, json=True, room=gameId)
+        
+    db.close()
 
 @socketio.on('discardCard')
 def discardCard(msg):
+    db = DatabaseService()
     gameId = msg['gameId']
     name = msg['name']
     cardIndex = int(msg['cardIndex'])
 
-    g.cur.execute('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
-    gameRes = g.cur.fetchone()
-    g.cur.execute("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
-    playerRes = g.cur.fetchone()
+    gameRes = db.fetchone('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
+    playerRes = db.fetchone("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
     
     game = json.loads(gameRes[0])
     deck = json.loads(gameRes[1])
@@ -282,9 +311,11 @@ def discardCard(msg):
     hanabi.discardCard(game, deck, player, cardIndex)
     hanabi.endTurn(game)
 
-    g.cur.execute("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
-    g.cur.execute("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
-    g.conn.commit()
+    queries = []
+    queries.append("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
+    queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
+    db.bulkExecute(queries)
+    db.close()
 
     game = getGame(gameId)
     send({
@@ -298,14 +329,13 @@ def discardCard(msg):
 
 @socketio.on('playCard')
 def playCard(gameId):
+    db = DatabaseService()
     gameId = msg['gameId']
     name = msg['name']
     cardIndex = int(msg['cardIndex'])
 
-    g.cur.execute('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
-    gameRes = g.cur.fetchone()
-    g.cur.execute("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
-    playerRes = g.cur.fetchone()
+    gameRes = db.fetchone('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
+    playerRes = db.fetchone("SELECT name, handJSON FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
 
     game = json.loads(gameRes[0])
     deck = json.loads(gameRes[1])
@@ -314,9 +344,13 @@ def playCard(gameId):
     hanabi.playCard(game, deck, player, cardIndex)
     hanabi.endTurn(game)
     
-    g.cur.execute("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
-    g.cur.execute("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
-    g.conn.commit()
+    queries = []
+    queries.append("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
+    queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
+    db.bulkExecute(queries)
+    db.close()
+        
+    db.close()
 
     game = getGame(gameId)
     send({
@@ -330,15 +364,15 @@ def playCard(gameId):
 
 @socketio.on('endGame')
 def endGame(msg):
+    db = DatabaseService()
     gameId = msg['gameId']
 
-    g.cur.execute('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
-    gameRes = g.cur.fetchone()
+    gameRes = db.fetchone('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
     game = json.loads(gameRes[0])
 
     hanabi.giveUp(game)
-    g.cur.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
-    g.conn.commit()
+    db.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
+    db.close()
 
     send({
         'event': 'endGame',
