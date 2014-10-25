@@ -8,6 +8,7 @@ from flask.ext.socketio import SocketIO, send, join_room, leave_room
 import hanabi
 from utils import parsePlayer, DatabaseService, getGame
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEBUG = True
 
 app = Flask(__name__)
@@ -22,7 +23,7 @@ def loadGame(gameId):
 @socketio.on('createGame')
 def createGame(msg):
     db = DatabaseService()
-    rainbow = False if msg['rainbow'].lower() == "false" else True
+    rainbow = msg['isRainbow']
     name = msg['name']
 
     game = hanabi.newGameObject(rainbow)
@@ -313,7 +314,7 @@ def endGame(msg):
 
 @app.route('/')
 def index():
-    return make_response(open('app/templates/index.html').read())
+    return make_response(open('%s/templates/index.html' % BASE_DIR).read())
 
 def run():
     port = int(os.environ.get('PORT', 5000))
