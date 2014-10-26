@@ -310,6 +310,10 @@ def index():
 def test():
     return make_response(open('%s/templates/test.html' % BASE_DIR).read())
 
+@app.route('/template')
+def template():
+    return make_response(open('%s/templates/template.html' % BASE_DIR).read())
+
 def run():
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, host='0.0.0.0', port=port)
