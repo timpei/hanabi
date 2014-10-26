@@ -1,0 +1,33 @@
+<div class="panel panel-primary">
+  <div class="panel-heading">
+      <span class="glyphicon glyphicon-comment"></span> Chat
+  </div>
+  <div class="panel-body" scroll-glue>
+    <ul class="chat">
+      <li class="left clearfix" ng-repeat="message in messages">
+        <span class="chat-img pull-left" ng-if="message.type == 'chat'">
+          <img src="http://placehold.it/50/55C1E7/fff&amp;text=U" alt="User Avatar" class="img-circle">
+        </span>
+        <div class="chat-body clearfix">
+          <div class="header">
+            <strong class="primary-font" ng-if="message.type == 'chat'">{{message.name}}</strong> 
+            <small class="pull-right text-muted"><span class="glyphicon glyphicon-time"></span>12 mins ago</small>
+          </div>
+          <p>
+            {{message.message}}
+          </p>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div class="panel-footer">
+    <form>
+      <div class="input-group">
+        <input id="btn-input" type="text" class="form-control input-sm" placeholder="Type your message here..." ng-model="message">
+        <span class="input-group-btn">
+          <button class="btn btn-warning btn-sm" ng-disabled="message==''" id="btn-chat" ng-click="sendMessage()">Send</button>
+        </span>
+      </div>
+    </form>
+  </div>
+</div>

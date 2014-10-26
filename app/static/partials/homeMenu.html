@@ -13,7 +13,7 @@
       <input type="checkbox" ng-model="menuForm.isRainbow"> Include rainbow
     </label>
   </div>
-  <button type="button" class="btn btn-primary" ng-disabled="menuForm.$invalid" ng-click="submitForm()">Create</button>      
+  <button class="btn btn-primary" ng-disabled="form.$invalid" ng-click="submitForm()">Create</button>      
 </form>
 
 <form ng-if="option=='enterGame'" name="form">
@@ -25,7 +25,7 @@
     <label for="enterGameName" class="control-label">Your name</label>
     <input type="text" class="form-control" id="enterGameName" ng-model="menuForm.name" required>
   </div>
-  <button type="button" class="btn btn-primary" ng-disabled="menuForm.$invalid" ng-click="submitForm()">Enter</button>      
+  <button class="btn btn-primary" ng-disabled="form.$invalid" ng-click="submitForm()">Enter</button>      
 </form>
 
 <form ng-if="option=='resumeGame'" name="form">
@@ -37,7 +37,7 @@
     <label for="resumeGameName" class="control-label">Your name</label>
     <input type="text" class="form-control" id="resumeGameName" ng-model="menuForm.name" required>
   </div>
-  <button type="button" class="btn btn-primary" ng-disabled="menuForm.$invalid" ng-click="submitForm()">Resume</button>      
+  <button class="btn btn-primary" ng-disabled="form.$invalid" ng-click="submitForm()">Resume</button>      
 </form>
 
 {{menuForm}}

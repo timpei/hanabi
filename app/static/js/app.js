@@ -5,7 +5,7 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
   $scope.game = {}
   $scope.messages = []
 
-  $scope.$on('identityChange', function(newName) {
+  $scope.$on('identityChange', function(event, newName) {
     $scope.player = newName 
   })
 
@@ -103,7 +103,17 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
 }]);
 
 hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, socketio) {
+  $scope.message = ''
 
+  $scope.sendMessage = function() {
+    socketio.emit('sendMessage', {
+      gameId: $scope.game.id,
+      name: $scope.player,
+      message: $scope.message
+    })
+
+    $scope.message = ''
+  }
 }]);
 
 
