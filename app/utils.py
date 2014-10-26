@@ -25,13 +25,18 @@ def getGame(gameId):
     db.close()
 
     game['id'] = gameId
-    game['players'] = [None for i in players]   # preinitialize players array to preserve order
     game['spectators'] = []
-    for player in players:
-        player = parsePlayer(player)
-        for idx, name in enumerate(game['order']):
-            if player['name'] == name:
-                game['players'][idx] = player
+    if game['hasStarted']:
+        game['players'] = [None for i in players]   # preinitialize players array to preserve order
+        for player in players:
+            player = parsePlayer(player)
+            for idx, name in enumerate(game['order']):
+                if player['name'] == name:
+                    game['players'][idx] = player
+    else:
+        game['players'] = []
+        for player in players:
+            game['players'].append(player)
     for spectator in spectators:
         game['spectators'].append(parseSpectator(spectator))
 
