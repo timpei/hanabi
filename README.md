@@ -371,12 +371,15 @@ emit('playCard', {
 ```
 emit('endGame', {
     gameId: int,
+    name: string
 }
 ```
 * **Broadcast**
 ```javascript
 {
     'event': 'endGame',
-    'payload' : {}
+    'payload' : {
+        'name': string
+    }
 }
 ```
