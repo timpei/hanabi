@@ -36,6 +36,7 @@ def getGame(gameId):
     else:
         game['players'] = []
         for player in players:
+            player = parsePlayer(player)
             game['players'].append(player)
     for spectator in spectators:
         game['spectators'].append(parseSpectator(spectator))
