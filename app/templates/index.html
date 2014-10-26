@@ -1,40 +1,26 @@
 <!doctype html>
 
-<html lang="en">
-<head>
-  <meta charset="utf-8">
+<html lang="en" ng-app="hanabi">
+  <head>
+    <meta charset="utf-8">
 
-  <title>Hanabi Isotropic</title>
-  <meta name="description" content="Hanabi Isotropic By Tim Pei and Curtis Kroetsch">
-  <meta name="author" content="Tim Pei">
+    <title>Hanabi Isotropic</title>
+    <meta name="description" content="Hanabi Isotropic By Tim Pei and Curtis Kroetsch">
+    <meta name="author" content="Tim Pei">
 
-  <!--[if lt IE 9]>
-  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-  <![endif]-->
-</head>
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
-<script type="text/javascript" charset="utf-8">
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    <link rel="stylesheet" href="/static/lib/bootstrap/css/bootstrap.min.css">
 
-    socket.on('connect', function(msg) {
-      console.log("CONNECTED!")
-    });
-
-    socket.on('message', function(msg) {
-      console.log(msg);
-    })
-
-    var post = function(url, data, callback) {
-
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/message/1', true);
-      xhr.onload = function () {
-          // do something to response
-          console.log(this.responseText);
-      };
-      xhr.send(data);
-    }
-</script>
-<body>
-</body>
+    <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular.min.js"></script>
+    <script type="text/javascript" src="/static/js/app.js"></script>
+  </head>
+  <body ng-controller="baseController">
+    <div class="container">
+      <h1>Hanabi</h1>
+      <div x-home-menu></div>
+    </div>
+  </body>
 </html>
