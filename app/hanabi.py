@@ -77,10 +77,14 @@ def giveHint(game, toPlayer, hintType, hint):
     return cardsHinted
 
 def discardCard(game, deck, player, cardIndex):
-    game['discarded'].append(player['hand'].pop(cardIndex))
+    card = player['hand'].pop(cardIndex)
+    game['discarded'].append(card)
+    if (game['numHints'] < MAX_HINTS):
+        game['numHints'] += 1
     if game['numCardsRemaining'] != 0:
         game['numCardsRemaining'] -= 1
         player['hand'].append(deck.pop())
+    return card
 
 def playCard(game, deck, player, cardIndex):
     playedCard = player['hand'].pop(cardIndex)
@@ -107,6 +111,7 @@ def playCard(game, deck, player, cardIndex):
     if game['numCardsRemaining'] != 0:
         game['numCardsRemaining'] -= 1
         player['hand'].append(deck.pop())
+    return playedCard
 
 def endTurn(game):
     game['currentPlayer'] = game['order'][(game['order'].index(game['currentPlayer']) + 1) % len(game['order'])]

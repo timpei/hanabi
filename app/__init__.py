@@ -182,7 +182,7 @@ def sendMessage(msg):
 
 @socketio.on('giveHint')
 @eventInject(logger=True, db=True)
-def giveHint():
+def giveHint(msg, db):
     gameId = msg['gameId']
     hintType = msg['hintType']
     name = msg['name']
@@ -235,7 +235,7 @@ def discardCard(msg, db):
     deck = json.loads(gameRes[1])
     player = parsePlayer(playerRes)
 
-    hanabi.discardCard(game, deck, player, cardIndex)
+    discardedCard = hanabi.discardCard(game, deck, player, cardIndex)
     hanabi.endTurn(game)
 
     queries = []
@@ -248,14 +248,14 @@ def discardCard(msg, db):
         'event': 'discardCard',
         'payload' : {
             "name": name,
-            "cardIndex": cardIndex,
+            "card": discardedCard,
             "game": game,
             }
         }, json=True, room=gameId)
 
 @socketio.on('playCard')
 @eventInject(logger=True, db=True)
-def playCard(gameId):
+def playCard(msg, db):
     gameId = msg['gameId']
     name = msg['name']
     cardIndex = msg['cardIndex']
@@ -267,7 +267,7 @@ def playCard(gameId):
     deck = json.loads(gameRes[1])
     player = parsePlayer(playerRes)
 
-    hanabi.playCard(game, deck, player, cardIndex)
+    playedCard = hanabi.playCard(game, deck, player, cardIndex)
     hanabi.endTurn(game)
     
     queries = []
@@ -281,7 +281,7 @@ def playCard(gameId):
         'event': 'playCard',
         'payload' : {
             "name": name,
-            "cardIndex": cardIndex,
+            "card": playedCard,
             "game": game,
             }
         }, json=True, room=gameId)
