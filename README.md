@@ -339,7 +339,7 @@ emit('discardCard', {
     'event': 'discardCard',
     'payload' : {
         "name": string,
-        "cardIndex": int,
+        "card": a Card object,
         "game": a Game object,
         }
 }
@@ -360,7 +360,7 @@ emit('playCard', {
     'event': 'playCard',
     'payload' : {
         "name": string,
-        "cardIndex": int,
+        "card": a Card object,
         "game": a Game object,
         }
 }
