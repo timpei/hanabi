@@ -6,7 +6,7 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
   $scope.messages = []
 
   $scope.$on('identityChange', function(event, newName) {
-    $scope.player = newName 
+    $scope.alias = newName 
   })
 
 	socketio.on('connect', function(msg) {
@@ -104,15 +104,63 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
 
 hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, socketio) {
   $scope.message = ''
+  $scope.option = ''
+  $scope.playerCards = getPlayerCards()
+
+  $scope.playForm = {
+    cardIndex: -1
+  }
+  $scope.discardForm = {}
+  $scope.giveHintForm = {}
+
 
   $scope.sendMessage = function() {
     socketio.emit('sendMessage', {
       gameId: $scope.game.id,
-      name: $scope.player,
+      name: $scope.alias,
       message: $scope.message
     })
 
     $scope.message = ''
+  }
+
+  $scope.changeAction = function(option) {
+    if ($scope.option == option) {
+      $scope.option = ''
+    } else {  
+      $scope.option = option
+    }
+  }
+
+  $scope.selectPlayCard = function(index) {
+    if ($scope.playForm.cardIndex != index) {
+      $scope.playForm.cardIndex = index
+    } else {
+      $scope.playForm.cardIndex = -1
+    }
+  }
+
+  $scope.submitPlayCard = function() {
+    socketio.emit($scope.option, {
+      gameId: $scope.game.id,
+      name: $scope.alias,
+      cardIndex: $scope.playForm.cardIndex
+    })
+    $scope.playForm = {
+      cardIndex: -1
+    }
+  }
+
+  $scope.range = function(n) {
+    return new Array(n)
+  }
+
+  function getPlayerCards() {
+    for (var i = 0; i < $scope.game.players.length; i++) {
+      if ($scope.game.players[i].name == $scope.alias) {
+        return $scope.game.players[i].hand
+      }
+    }
   }
 }]);
 
@@ -125,9 +173,9 @@ hanabiApp.controller('homeMenuController', ['$scope', 'socketio', function($scop
 
   $scope.showForm = function(option) {
   	if ($scope.option == option) {
-  		$scope.option = '';
+  		$scope.option = ''
   	} else {	
-  		$scope.option = option;
+  		$scope.option = option
   	}
   }
 

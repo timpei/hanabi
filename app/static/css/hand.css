@@ -1,0 +1,113 @@
+/* Badger
+------------------------- */
+
+[class*="badger"] {
+    position: relative;
+    margin: 10px 0;
+    padding: 10px 10px 10px 85px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+[class*="badger"]:after {
+    content: attr(data-badger);
+    position: absolute;
+    top: 0;
+    padding: 3px 7px;
+    font-size: 15px;
+    font-weight: bold;
+    background: #999;
+    color: #fff;
+}
+
+.badger-left:after {
+    left: 0;
+    border-radius: 6px 0 6px 0;
+}
+
+.badger-right:after {
+    right: 0;
+    border-radius: 0 6px 0 6px;
+}
+
+.badger-danger:after {
+    background: #d9534f;
+}
+
+.badger-warning:after {
+    background: #f0ad4e;
+}
+
+.badger-success:after {
+    background: #5cb85c;
+}
+
+.badger-info:after {
+    background: #5bc0de;
+}
+
+.badger-inverse:after {
+    background: #222;
+}
+
+#stats {
+    float: left;
+    margin: 7px 5px 0 7px;
+}
+
+#stats p {
+    margin: 0 0 0 3px;
+}
+
+#stats span {
+    margin: 0 1px;
+}
+
+.card {
+    border: 3px solid black;
+    float: left;
+    width: 40px;
+    height: 55px;
+    margin: 0 5px;
+    padding: 0 0 0 8px;
+    border-radius: 3px;
+    font-size: 35px;
+}
+
+.unknown-card {
+    background-color: lightgrey;
+}
+
+.yellow-card {
+    background-color:#FFF467;
+}
+
+.blue-card {
+    background-color:#00BFF3;
+}
+
+.green-card {
+    background-color:#3BB878;
+}
+
+.red-card {
+    background-color:#F24441;
+}
+
+.white-card {
+    background-color:#FFFFFF;
+}
+
+.rainbow-card {
+    background: #f24441; /* Old browsers */
+    background: -moz-linear-gradient(45deg,  #f24441 2%, #fff467 41%, #fff467 41%, #fff467 59%, #00bff3 97%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left bottom, right top, color-stop(2%,#f24441), color-stop(41%,#fff467), color-stop(41%,#fff467), color-stop(59%,#fff467), color-stop(97%,#00bff3)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(45deg,  #f24441 2%,#fff467 41%,#fff467 41%,#fff467 59%,#00bff3 97%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(45deg,  #f24441 2%,#fff467 41%,#fff467 41%,#fff467 59%,#00bff3 97%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(45deg,  #f24441 2%,#fff467 41%,#fff467 41%,#fff467 59%,#00bff3 97%); /* IE10+ */
+    background: linear-gradient(45deg,  #f24441 2%,#fff467 41%,#fff467 41%,#fff467 59%,#00bff3 97%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f24441', endColorstr='#00bff3',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+}
+

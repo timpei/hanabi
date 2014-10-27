@@ -1,0 +1,42 @@
+
+<div class="badger-left badger-success" data-badger="TABLE">
+  <div ng-repeat="card in game.played" class="card {{card.suit.toLowerCase()}}-card">{{card.number}}</div>
+  <div id="stats">
+    <p>Lives: <span class="glyphicon glyphicon-heart" ng-repeat="live in range(3) track by $index"></span>
+    <p>Hints: <span class="glyphicon glyphicon-time" ng-repeat="hint in range(game.numHints) track by $index"></span>
+  </div>
+</div>
+<div class="row">
+    <div class="col-md-7">
+        <div ng-repeat="player in game.players">
+            <div ng-if="player.name != alias" class="badger-left badger-info" data-badger="{{player.name}}">
+              <div ng-repeat="card in player.hand" class="card {{card.suit.toLowerCase()}}-card">{{card.number}}</div>
+            </div>
+            <div ng-if="player.name == alias" class="badger-left badger-info" data-badger="{{player.name}} (you)">
+              <div ng-repeat="card in playerCards" class="card unknown-card">?</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="btn-group player-actions">
+                    <button class="btn btn-success" ng-class="{'active': option == 'playCard'}" ng-click="changeAction('playCard')">Play</button>
+                    <button class="btn btn-danger" ng-class="{'active': option == 'discardCard'}" ng-click="changeAction('discardCard')">Discard</button>
+                    <button class="btn btn-warning" ng-class="{'active': option == 'giveHint'}" ng-click="changeAction('giveHint')">Hint</button>
+                </div>
+            </div>
+            <ul class="list-group" ng-if="option != ''">
+                <li class="list-group-item" ng-if="option == 'playCard'">
+                    <p>Choose a card to play:</p>
+                    <div class="btn-group">
+                      <button ng-repeat="card in playerCards" type="button" class="btn btn-default" ng-class="{'btn-success': playForm.cardIndex == $index + 1}" ng-click="selectPlayCard($index+1)">{{$index + 1}}</button>
+                    </div>
+                    <button class="btn btn-primary action-submit" ng-disabled="playForm.cardIndex == -1" ng-click="submitPlayCard()">Play Card</button>
+                </li>
+                <li class="list-group-item" ng-if="option == 'discardCard'">disCard</li>
+                <li class="list-group-item" ng-if="option == 'giveHint'">giveHint</li>
+            </ul>
+        </div>
+    </div>
+</div>

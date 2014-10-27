@@ -21,6 +21,13 @@ hanabiApp.directive('chatBar', function() {
   };
 });
 
+hanabiApp.directive('gameTable', function() {
+  return {
+      restrict: 'AE',
+      templateUrl: '/static/partials/gameTable.html'
+  };
+});
+
 hanabiApp.directive('scrollBottom', function() {
     return {
         restrict: 'A',

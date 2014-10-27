@@ -9,7 +9,9 @@
     <meta name="author" content="Tim Pei">
 
     <link rel="stylesheet" href="/static/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/app.css">
     <link rel="stylesheet" href="/static/css/chat.css">
+    <link rel="stylesheet" href="/static/css/hand.css">
 
     <!--[if lt IE 9]>
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -22,7 +24,7 @@
   </head>
   <body ng-controller="baseController">
     <div class="container">
-      <h1>Hanabi</h1>
+      <h2>Hanabi</h2>
       <div ng-switch on="appState">
         <div ng-switch-when="menu" x-home-menu ng-controller="homeMenuController"></div>
         <div ng-switch-when="game" x-game ng-controller="gameController"></div>

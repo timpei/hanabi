@@ -1,0 +1,12 @@
+.container {
+	max-width: 1050px;
+}
+
+.player-actions {
+	left: 50%;
+	margin: 0 0 0 -88px;
+}
+
+.action-submit {
+	margin: 10px 0 0 0;
+}

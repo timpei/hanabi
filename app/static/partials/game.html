@@ -1,12 +1,15 @@
 
-
 <div class="row">
   <div class="col-md-8">
-    {{game}}
+    <div ng-if="game.hasStarted">
+      <div x-game-table></div>
+    </div>
+    <div ng-if="!game.hasStarted">
+      {{game}}
+    </div>
   </div>
   <div class="col-md-4">
-    <div x-chat-bar>
-    </div>
+    <div x-chat-bar></div>
   </div>
 </div>
 
