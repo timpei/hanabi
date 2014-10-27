@@ -83,7 +83,7 @@ def discardCard(game, deck, player, cardIndex):
         game['numHints'] += 1
     if game['numCardsRemaining'] != 0:
         game['numCardsRemaining'] -= 1
-        player['hand'].append(deck.pop())
+        player['hand'].insert(0, deck.pop())
     return card
 
 def playCard(game, deck, player, cardIndex):
@@ -110,7 +110,7 @@ def playCard(game, deck, player, cardIndex):
     
     if game['numCardsRemaining'] != 0:
         game['numCardsRemaining'] -= 1
-        player['hand'].append(deck.pop())
+        player['hand'].insert(0, deck.pop())
     return playedCard
 
 def endTurn(game):
