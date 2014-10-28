@@ -51,8 +51,8 @@
                       <button ng-repeat="i in range(5) track by $index" type="button" class="btn btn-default" ng-class="{'btn-warning': hintForm.hint == $index + 1}" ng-click="selectHint($index+1, 'number')" ng-disabled="!canHintPlayer(hintForm.toName, $index + 1, 'number')">{{$index + 1}}</button>
                     </div>
                     <div class="btn-group">
-                      <button ng-repeat="colour in allColours" type="button" class="btn btn-default hint-btn" ng-class="{'btn-warning': hintForm.hint == colour}" ng-click="selectHint(colour, 'colour')" ng-disabled="!canHintPlayer(hintForm.toName, colour, 'colour')">
-                        <div class="hint-box {{colour.toLowerCase()}}-card"}></div>
+                      <button ng-repeat="suit in allColours" type="button" class="btn btn-default hint-btn" ng-class="{'btn-warning': hintForm.hint == suit}" ng-click="selectHint(suit, 'suit')" ng-disabled="!canHintPlayer(hintForm.toName, suit, 'suit')">
+                        <div class="hint-box {{suit.toLowerCase()}}-card"}></div>
                       </button>
                     </div>
                     <button class="btn btn-primary" ng-disabled="hintForm == {hint: null, toName: null, hintType: null}" ng-click="submitHint()">Give Hint</button>

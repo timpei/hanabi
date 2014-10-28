@@ -97,7 +97,6 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
   })
 
   var renderGame = function(game) {
-    console.log(game)
     $scope.game = game
   }
 }]);
@@ -162,12 +161,12 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
     socketio.emit($scope.option, {
       gameId: $scope.game.id,
       name: $scope.alias,
-      cardIndex: $scope.playForm.cardIndex
+      cardIndex: $scope.playForm.cardIndex - 1 // because server uses it as array index
     })
     $scope.playForm = {
       cardIndex: -1
     }
-    $scope.message = ''
+    $scope.option = ''
   }
 
   $scope.selectDiscardCard = function(index) {
@@ -182,12 +181,12 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
     socketio.emit($scope.option, {
       gameId: $scope.game.id,
       name: $scope.alias,
-      cardIndex: $scope.discardForm.cardIndex
+      cardIndex: $scope.discardForm.cardIndex - 1
     })
     $scope.discardForm = {
       cardIndex: -1
     }
-    $scope.message = ''
+    $scope.option = ''
   }
 
   $scope.selectHintToName = function(name) {
@@ -212,7 +211,7 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
     for (var pi = 0; pi < $scope.game.players.length; pi++) {
       if ($scope.game.players[pi].name == name) {
         for (var ci = 0; ci < $scope.game.players[pi].hand.length; ci++) {
-          if (hintType == 'colour' && ($scope.game.players[pi].hand[ci].suit == hint ||
+          if (hintType == 'suit' && ($scope.game.players[pi].hand[ci].suit == hint ||
                                        $scope.game.players[pi].hand[ci].suit == 'RAINBOW') ||
               hintType == 'number' && $scope.game.players[pi].hand[ci].number == hint) {
             return true
@@ -237,7 +236,7 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
       hint: null,
       hintType: null
     }
-    $scope.message = ''
+    $scope.option = ''
   }
 
   $scope.range = function(n) {
