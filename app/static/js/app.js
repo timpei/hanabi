@@ -106,13 +106,19 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
   $scope.message = ''
   $scope.option = ''
   $scope.playerCards = getPlayerCards()
+  $scope.allColours = getAllColours()
 
   $scope.playForm = {
     cardIndex: -1
   }
-  $scope.discardForm = {}
-  $scope.giveHintForm = {}
-
+  $scope.discardForm = {
+    cardIndex: -1
+  }
+  $scope.hintForm = {
+    toName: null,
+    hint: null,
+    hintType: null
+  }
 
   $scope.sendMessage = function() {
     socketio.emit('sendMessage', {
@@ -129,6 +135,18 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
       $scope.option = ''
     } else {  
       $scope.option = option
+    }
+
+    $scope.playForm = {
+      cardIndex: -1
+    }
+    $scope.discardForm = {
+      cardIndex: -1
+    }
+    $scope.hintForm = {
+      toName: null,
+      hint: null,
+      hintType: null
     }
   }
 
@@ -149,6 +167,77 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
     $scope.playForm = {
       cardIndex: -1
     }
+    $scope.message = ''
+  }
+
+  $scope.selectDiscardCard = function(index) {
+    if ($scope.discardForm.cardIndex != index) {
+      $scope.discardForm.cardIndex = index
+    } else {
+      $scope.discardForm.cardIndex = -1
+    }
+  }
+
+  $scope.submitDiscardCard = function() {
+    socketio.emit($scope.option, {
+      gameId: $scope.game.id,
+      name: $scope.alias,
+      cardIndex: $scope.discardForm.cardIndex
+    })
+    $scope.discardForm = {
+      cardIndex: -1
+    }
+    $scope.message = ''
+  }
+
+  $scope.selectHintToName = function(name) {
+    if ($scope.hintForm.toName != name) {
+      $scope.hintForm.toName = name
+    } else {
+      $scope.hintForm.toName = null
+    }
+  }
+
+  $scope.selectHint = function(hint, hintType) {
+    if ($scope.hintForm.hint != hint) {
+      $scope.hintForm.hint = hint
+      $scope.hintForm.hintType = hintType
+    } else {
+      $scope.hintForm.hint = null
+      $scope.hintForm.hintType = null
+    }
+  }
+
+  $scope.canHintPlayer = function(name, hint, hintType) {
+    for (var pi = 0; pi < $scope.game.players.length; pi++) {
+      if ($scope.game.players[pi].name == name) {
+        for (var ci = 0; ci < $scope.game.players[pi].hand.length; ci++) {
+          if (hintType == 'colour' && ($scope.game.players[pi].hand[ci].suit == hint ||
+                                       $scope.game.players[pi].hand[ci].suit == 'RAINBOW') ||
+              hintType == 'number' && $scope.game.players[pi].hand[ci].number == hint) {
+            return true
+          }
+        }
+        return false
+      }
+    }
+    return false
+  }
+
+  $scope.submitHint = function() {
+    socketio.emit($scope.option, {
+      gameId: $scope.game.id,
+      name: $scope.alias,
+      toName: $scope.hintForm.toName,
+      hintType: $scope.hintForm.hintType,
+      hint: $scope.hintForm.hint
+    })
+    $scope.hintForm = {
+      toName: null,
+      hint: null,
+      hintType: null
+    }
+    $scope.message = ''
   }
 
   $scope.range = function(n) {
@@ -161,6 +250,14 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
         return $scope.game.players[i].hand
       }
     }
+  }
+
+  function getAllColours() {
+    var allColours = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'WHITE']
+    if ($scope.game.isRainbow) {
+      allColours.push('RAINBOW')
+    }
+    return allColours
   }
 }]);
 

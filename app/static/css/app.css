@@ -7,6 +7,10 @@
 	margin: 0 0 0 -88px;
 }
 
-.action-submit {
-	margin: 10px 0 0 0;
+.btn-group, .btn-group-vertical {
+	margin-bottom: 10px;
+}
+
+.btn.disabled, .btn[disabled] {
+	cursor: not-allowed
 }

@@ -111,3 +111,12 @@
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f24441', endColorstr='#00bff3',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
 }
 
+.hint-btn {
+    padding: 4px;
+}
+
+.hint-box {
+    width: 20px;
+    height: 20px;
+}
+
