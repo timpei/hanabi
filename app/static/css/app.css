@@ -7,6 +7,10 @@
 	margin: 0 0 0 -88px;
 }
 
+.status-board {
+	padding: 10px;
+}
+
 .btn-group, .btn-group-vertical {
 	margin-bottom: 10px;
 }

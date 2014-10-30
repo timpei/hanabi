@@ -18,12 +18,15 @@
         </div>
     </div>
     <div class="col-md-5">
+        <div class="panel panel-default status-board">
+            <p><strong>{{game.currentPlayer}}'s Turn</strong></p>
+        </div>
         <div class="panel panel-default">
             <div class="panel-body">
                 <div class="btn-group player-actions">
-                    <button class="btn btn-success" ng-class="{'active': option == 'playCard'}" ng-click="changeAction('playCard')">Play</button>
-                    <button class="btn btn-danger" ng-class="{'active': option == 'discardCard'}" ng-click="changeAction('discardCard')">Discard</button>
-                    <button class="btn btn-warning" ng-class="{'active': option == 'giveHint'}" ng-click="changeAction('giveHint')">Hint</button>
+                    <button class="btn btn-success" ng-class="{'active': option == 'playCard'}" ng-click="changeAction('playCard')" ng-disabled="game.currentPlayer != alias">Play</button>
+                    <button class="btn btn-danger" ng-class="{'active': option == 'discardCard'}" ng-click="changeAction('discardCard')" ng-disabled="game.currentPlayer != alias">Discard</button>
+                    <button class="btn btn-warning" ng-class="{'active': option == 'giveHint'}" ng-click="changeAction('giveHint')" ng-disabled="game.currentPlayer != alias || game.numHints == 0">Hint</button>
                 </div>
             </div>
             <ul class="list-group" ng-if="option != ''">

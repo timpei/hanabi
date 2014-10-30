@@ -15,5 +15,5 @@
 </ul>
 
 <h3>{{alias}}'s Actions</h3>
-<button class="btn btn-primary" ng-click="joinGame()">Join Game</button>
+<button class="btn btn-primary" ng-click="joinGame()" ng-disabled="joinedGame">Join Game</button>
 <button class="btn btn-success" ng-click="startGame()" ng-disabled="game.players.length < 2">Start Game</button>

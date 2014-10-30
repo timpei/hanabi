@@ -50,6 +50,9 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
             message: payload.name + " joined the game as a player!",
           })
           renderGame(payload.game)
+          if (payload.name == $scope.alias) {
+            $scope.$broadcast('successfulJoin')
+          }
           break
         case 'startGame':
           $scope.messages.push({
@@ -57,12 +60,16 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
             message: "Game started!",
           })
           renderGame(payload.game)
+          $scope.$broadcast('gameStarted')
           break
         case 'giveHint':
+          for (var i = 0; i < payload.cardsHinted.length; i++) {
+            payload.cardsHinted[i] = payload.cardsHinted[i] + 1
+          }
           $scope.messages.push({
             type: 'announcement',
             message: payload.from + " told " + payload.to + " cards " +
-                      payload.cardsHinted + " are " + payload.hintType + payload.hint,
+                      payload.cardsHinted + " are " + payload.hint,
           })
           renderGame(payload.game)
           break
@@ -106,6 +113,7 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
   $scope.option = ''
   $scope.playerCards = getPlayerCards()
   $scope.allColours = getAllColours()
+  $scope.joinedGame = false
 
   $scope.playForm = {
     cardIndex: -1
@@ -118,6 +126,14 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
     hint: null,
     hintType: null
   }
+
+  $scope.$on('successfulJoin', function(event) {
+    $scope.joinedGame = true
+  })
+
+  $scope.$on('gameStarted', function(event) {
+    $scope.playerCards = getPlayerCards()
+  })
 
   $scope.sendMessage = function() {
     socketio.emit('sendMessage', {
