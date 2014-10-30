@@ -54,7 +54,7 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
         case 'startGame':
           $scope.messages.push({
             type: 'announcement',
-            message: payload.name + " resumed the game!",
+            message: "Game started!",
           })
           renderGame(payload.game)
           break
@@ -127,6 +127,19 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
     })
 
     $scope.message = ''
+  }
+
+  $scope.joinGame = function() {
+    socketio.emit('joinGame', {
+      gameId: $scope.game.id,
+      name: $scope.alias
+    })
+  }
+
+  $scope.startGame = function() {
+    socketio.emit('startGame', {
+      gameId: $scope.game.id
+    })
   }
 
   $scope.changeAction = function(option) {

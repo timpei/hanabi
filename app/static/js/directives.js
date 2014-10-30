@@ -28,6 +28,13 @@ hanabiApp.directive('gameTable', function() {
   };
 });
 
+hanabiApp.directive('gameRoom', function() {
+  return {
+      restrict: 'AE',
+      templateUrl: '/static/partials/gameRoom.html'
+  };
+});
+
 hanabiApp.directive('scrollBottom', function() {
     return {
         restrict: 'A',

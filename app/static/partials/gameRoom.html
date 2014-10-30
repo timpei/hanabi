@@ -1,0 +1,19 @@
+
+<h3 ng-if="game.isRainbow">This is a Rainbow game.</h3>
+<h3 ng-if="!game.isRainbow">This is a Normal (no Rainbow) game.</h3>
+<h3>The game ID is {{game.id}}</h3>
+<h3>Peeps in the room</h3>
+<ul class="list-group">
+  <li class="list-group-item" ng-repeat="player in game.players">
+    <span class="label label-success">Player</span>
+    {{player.name}}
+  </li>
+  <li class="list-group-item" ng-repeat="spectator in game.spectators">
+    <span class="label label-default">Spectator</span>
+    {{spectator.name}}
+  </li>
+</ul>
+
+<h3>{{alias}}'s Actions</h3>
+<button class="btn btn-primary" ng-click="joinGame()">Join Game</button>
+<button class="btn btn-success" ng-click="startGame()" ng-disabled="game.players.length < 2">Start Game</button>
