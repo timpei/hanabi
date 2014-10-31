@@ -54,9 +54,12 @@ def startGameAndGetDeck(game, players):
     deck = newShuffledDeck(game['isRainbow'])
     handSize = HAND_SIZE[len(players)]
 
-    for i in xrange(handSize):
-        for player in players:
+    for player in players:
+        game['order'].append(player['name'])
+        for i in xrange(handSize):
             player['hand'].append(deck.pop())
+
+    shuffle(game['order'])
 
     game['numCardsRemaining'] = len(deck)
     game['currentPlayer'] = players[0]['name']

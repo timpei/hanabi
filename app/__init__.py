@@ -145,7 +145,6 @@ def startGame(msg, db):
         queries = []
         for player in players:
             queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
-            game['order'].append(player['name'])
         queries.append("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
         db.bulkExecute(queries)   
 
