@@ -70,7 +70,13 @@ def giveHint(game, toPlayer, hintType, hint):
     cardsHinted = []
     for idx, card in enumerate(toPlayer['hand']):
         if hintType == 'suit' and (card['suit'] == hint or card['suit'] == "RAINBOW"):
-            card['knownSuit'].append(hint)
+            alreadyHinted = False
+            for suit in card['knownSuit']:
+                if suit == hint:
+                    alreadyHinted = True
+                    break
+            if not alreadyHinted:
+                card['knownSuit'].append(hint)
             cardsHinted.append(idx)
         if hintType == 'number' and card['number'] == hint:
             card['knowNumber'] = True
