@@ -40,7 +40,7 @@
                 <li class="list-group-item" ng-if="option == 'discardCard'">
                     <p>Choose a card to discard:</p>
                     <div class="btn-group">
-                      <button ng-repeat="card in playerCards" type="button" class="btn btn-default" ng-class="{'btn-danger': discardForm.cardIndex == $index + 1}" ng-click="selectDiscardCard($index+1)">{{$index + 1}}</button>
+                      <button ng-repeat="card in game.players[playerPos].hand" type="button" class="btn btn-default" ng-class="{'btn-danger': discardForm.cardIndex == $index + 1}" ng-click="selectDiscardCard($index+1)">{{$index + 1}}</button>
                     </div>
                     <button class="btn btn-primary" ng-disabled="discardForm.cardIndex == -1" ng-click="submitDiscardCard()">Discard Card</button>
                 </li>
