@@ -71,6 +71,7 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
             message: payload.from + " told " + payload.to + " cards " +
                       payload.cardsHinted + " are " + payload.hint,
           })
+          $scope.$broadcast('gameUpdated')
           renderGame(payload.game)
           break
         case 'discardCard':
@@ -79,6 +80,7 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
             message: payload.name + " discarded a " + payload.card.suit + " " + 
                       payload.card.number + ". ",
           })
+          $scope.$broadcast('gameUpdated')
           renderGame(payload.game)
           break
         case 'playCard':
@@ -87,6 +89,7 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
             message: payload.name + " played a " + payload.card.suit + " " + 
                       payload.card.number + ". ",
           })
+          $scope.$broadcast('gameUpdated')
           renderGame(payload.game)
           break
         case 'endGame':
@@ -111,7 +114,7 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
 hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, socketio) {
   $scope.message = ''
   $scope.option = ''
-  $scope.playerCards = getPlayerCards()
+  $scope.playerPos = getPlayerIndex()
   $scope.allColours = getAllColours()
   $scope.joinedGame = false
 
@@ -129,10 +132,6 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
 
   $scope.$on('successfulJoin', function(event) {
     $scope.joinedGame = true
-  })
-
-  $scope.$on('gameStarted', function(event) {
-    $scope.playerCards = getPlayerCards()
   })
 
   $scope.sendMessage = function() {
@@ -175,6 +174,31 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
       toName: null,
       hint: null,
       hintType: null
+    }
+  }
+
+  $scope.getSuitFromKnownSuit = function(knownSuit) {
+    var suit
+    switch (knownSuit.length) {
+      case 0: 
+        suit = 'unknown'
+        break
+      case 1:
+        suit = knownSuit[0].toLowerCase()
+        break
+      default:
+        suit = 'rainbow'
+        break
+    }
+    return suit
+  }
+
+
+  $scope.getNumberFromKnowNumber = function(knowNumber, number) {
+    if (knowNumber) {
+      return number
+    } else {
+      return '?'
     }
   }
 
@@ -272,10 +296,10 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
     return new Array(n)
   }
 
-  function getPlayerCards() {
+  function getPlayerIndex() {
     for (var i = 0; i < $scope.game.players.length; i++) {
       if ($scope.game.players[i].name == $scope.alias) {
-        return $scope.game.players[i].hand
+        return i
       }
     }
   }

@@ -13,7 +13,7 @@
               <div ng-repeat="card in player.hand" class="card {{card.suit.toLowerCase()}}-card">{{card.number}}</div>
             </div>
             <div ng-if="player.name == alias" class="badger-left badger-info" data-badger="{{player.name}} (you)">
-              <div ng-repeat="card in playerCards" class="card unknown-card">?</div>
+              <div ng-repeat="card in player.hand" class="card {{getSuitFromKnownSuit(card.knownSuit)}}-card">{{getNumberFromKnowNumber(card.knowNumber, card.number)}}</div>
             </div>
         </div>
     </div>
@@ -33,7 +33,7 @@
                 <li class="list-group-item" ng-if="option == 'playCard'">
                     <p>Choose a card to play:</p>
                     <div class="btn-group">
-                      <button ng-repeat="card in playerCards" type="button" class="btn btn-default" ng-class="{'btn-success': playForm.cardIndex == $index + 1}" ng-click="selectPlayCard($index+1)">{{$index + 1}}</button>
+                      <button ng-repeat="card in game.players[playerPos].hand" type="button" class="btn btn-default" ng-class="{'btn-success': playForm.cardIndex == $index + 1}" ng-click="selectPlayCard($index+1)">{{$index + 1}}</button>
                     </div>
                     <button class="btn btn-primary" ng-disabled="playForm.cardIndex == -1" ng-click="submitPlayCard()">Play Card</button>
                 </li>
