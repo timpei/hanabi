@@ -69,36 +69,36 @@ API calls will often return a game object as the response. Here is one for examp
             "Tim"
         ],
         "played": [
-            {"number": 1, "suit": "BLUE"}
+            {"number": 1, "suit": "BLUE", "knownSuit": [], "knowNumber": true}
         ],
         "players": [
             {
                 "hand": [
-                    {"number": 5, "suit": "YELLOW"},
-                    {"number": 3, "suit": "BLUE"},
-                    {"number": 4, "suit": "YELLOW"},
-                    {"number": 1, "suit": "WHITE"},
-                    {"number": 1, "suit": "BLUE"}
+                    {"number": 5, "suit": "YELLOW", "knownSuit": [], "knowNumber": false},
+                    {"number": 3, "suit": "BLUE", "knownSuit": [], "knowNumber": false},
+                    {"number": 4, "suit": "YELLOW", "knownSuit": [], "knowNumber": false},
+                    {"number": 1, "suit": "WHITE", "knownSuit": [], "knowNumber": true},
+                    {"number": 1, "suit": "BLUE", "knownSuit": [], "knowNumber": true}
                 ],
                 "name": "Curtis"
             },
             {
                 "hand": [
-                    {"number": 2, "suit": "WHITE"},
-                    {"number": 1, "suit": "GREEN"},
-                    {"number": 1, "suit": "YELLOW"},
-                    {"number": 3, "suit": "GREEN"},
-                    {"number": 3, "suit": "WHITE"}
+                    {"number": 2, "suit": "WHITE", "knownSuit": [], "knowNumber": false},
+                    {"number": 1, "suit": "GREEN", "knownSuit": [], "knowNumber": false},
+                    {"number": 1, "suit": "YELLOW", "knownSuit": [], "knowNumber": false},
+                    {"number": 3, "suit": "GREEN", "knownSuit": [], "knowNumber": false},
+                    {"number": 3, "suit": "WHITE", "knownSuit": [], "knowNumber": false}
                 ],
                 "name": "Tim"
             },
             {
                 "hand": [
-                    {"number": 2, "suit": "YELLOW"},
-                    {"number": 5, "suit": "BLUE"},
-                    {"number": 5, "suit": "WHITE"},
-                    {"number": 2, "suit": "BLUE"},
-                    {"number": 2, "suit": "RED"}
+                    {"number": 2, "suit": "YELLOW", "knownSuit": [], "knowNumber": false},
+                    {"number": 5, "suit": "BLUE", "knownSuit": [], "knowNumber": false},
+                    {"number": 5, "suit": "WHITE", "knownSuit": [], "knowNumber": false},
+                    {"number": 2, "suit": "BLUE", "knownSuit": [], "knowNumber": false},
+                    {"number": 2, "suit": "RED", "knownSuit": [], "knowNumber": false}
                 ],
                 "name": "Jackie"
             }
@@ -113,7 +113,7 @@ API calls will often return a game object as the response. Here is one for examp
     
 Here's a call that could have generated the above response: `GET /api/get/4`. Some of the JSON fields are further discussed below:
 
-* `discarded` is the discard pile, which consists of a list of card objects with the stucture like: `{"number": 4, "suit": "BLUE"}`. `played` and players' `hand` contains cards that exhibit the same structure.
+* `discarded` is the discard pile, which consists of a list of card objects with the stucture like: `{"number": 4, "suit": "BLUE", "knownSuit": [], "knowNumber": False}`. `knownSuit` represents the colours told to the player with that card, and `knowNumber` represents if the player holding the card know its number. `knownSuit` is a list since it is possible in a rainbow game to have a card be hinted multiple colours. `played` and players' `hand` contains cards that exhibit the same structure.
 * `hasEnded` indicates the termination of the game. It will be set to true when an end game state has been detected.
 * `hasStarted` indicates the status of the game. It will be set to true by the host once enough players has joined.
 * `order` is a random permutation of the players, governing the playing order. It is set after the start of the game.

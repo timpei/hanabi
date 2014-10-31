@@ -58,7 +58,7 @@
                         <div class="hint-box {{suit.toLowerCase()}}-card"}></div>
                       </button>
                     </div>
-                    <button class="btn btn-primary" ng-disabled="hintForm == {hint: null, toName: null, hintType: null}" ng-click="submitHint()">Give Hint</button>
+                    <button class="btn btn-primary" ng-disabled="hintForm.hint == null || hintForm.toName == null || hintForm.hintType == null" ng-click="submitHint()">Give Hint</button>
                 </li>
             </ul>
         </div>

@@ -34,7 +34,9 @@ def newGameObject(isRainbow):
 def newCardObject(suit, number):
     newCard = {
         "suit": suit,
-        "number": number
+        "number": number,
+        "knownSuit": [],
+        "knowNumber": False
     }
     return newCard
 
@@ -67,9 +69,11 @@ def canHint(game, fromPlayer):
 def giveHint(game, toPlayer, hintType, hint):
     cardsHinted = []
     for idx, card in enumerate(toPlayer['hand']):
-        if hintType == 'suit' and card['suit'] == hint:
+        if hintType == 'suit' and (card['suit'] == hint or card['suit'] == "RAINBOW"):
+            card['knownSuit'].append(hint)
             cardsHinted.append(idx)
         if hintType == 'number' and card['number'] == hint:
+            card['knowNumber'] = True
             cardsHinted.append(idx)
 
     game['numHints'] -= 1

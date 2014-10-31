@@ -199,6 +199,7 @@ def giveHint(msg, db):
         cardsHinted = hanabi.giveHint(game, toPlayer, hintType, hint)
 
         db.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
+        db.execute("UPDATE players SET handJSON='%s' WHERE name='%s'" % (json.dumps(toPlayer), toPlayer['name']))
 
         game = getGame(gameId)
         send({
