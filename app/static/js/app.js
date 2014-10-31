@@ -115,7 +115,7 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
   $scope.message = ''
   $scope.option = ''
   $scope.playerPos = getPlayerIndex()
-  $scope.allColours = getAllColours()
+  $scope.allColours = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'WHITE']
   $scope.joinedGame = false
 
   $scope.playForm = {
@@ -302,14 +302,6 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
         return i
       }
     }
-  }
-
-  function getAllColours() {
-    var allColours = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'WHITE']
-    if ($scope.game.isRainbow) {
-      allColours.push('RAINBOW')
-    }
-    return allColours
   }
 }]);
 
