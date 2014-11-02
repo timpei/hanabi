@@ -22,6 +22,14 @@
             <p><strong>{{game.currentPlayer}}'s Turn</strong></p>
         </div>
         <div class="panel panel-default">
+            <div class="panel-heading">
+                Discards Pile
+            </div>
+            <ul class="list-group" id="discard-pile">
+                <li class="list-group-item" ng-repeat="colour in allColours" ng-if="isSuitInDiscarded(colour)"><span class="label discard-card {{colour.toLowerCase()}}-card">{{colour.toLowerCase()}}</span>: <span ng-repeat="card in game.discarded | filter:{suit: colour} | orderBy:'number'"> {{card.number}}</span></li>
+            </ul>
+        </div>
+        <div class="panel panel-default">
             <div class="panel-body">
                 <div class="btn-group player-actions">
                     <button class="btn btn-success" ng-class="{'active': option == 'playCard'}" ng-click="changeAction('playCard')" ng-disabled="game.currentPlayer != alias">Play</button>

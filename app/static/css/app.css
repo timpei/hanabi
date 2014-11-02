@@ -18,3 +18,12 @@
 .btn.disabled, .btn[disabled] {
 	cursor: not-allowed
 }
+
+.discard-card {
+	color: black;
+}
+
+#discard-pile li {
+	padding-top: 3px;
+	padding-bottom: 3px;
+}

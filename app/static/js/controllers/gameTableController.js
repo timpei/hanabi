@@ -1,7 +1,6 @@
 hanabiApp.controller('gameTableController', ['$scope', 'socketio', function($scope, socketio) {
   $scope.option = ''
   $scope.playerPos = getPlayerIndex()
-  $scope.allColours = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'WHITE']
   $scope.joinedGame = false
 
   $scope.playForm = {
@@ -153,6 +152,15 @@ hanabiApp.controller('gameTableController', ['$scope', 'socketio', function($sco
       hintType: null
     }
     $scope.option = ''
+  }
+
+  $scope.isSuitInDiscarded = function(suit) {
+    for (var i = 0; i < $scope.game.discarded.length; i++) {
+      if ($scope.game.discarded[i].suit == suit) {
+        return true 
+      }
+    }
+    return false
   }
 
   $scope.range = function(n) {

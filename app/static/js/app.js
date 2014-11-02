@@ -4,6 +4,7 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
   $scope.appState = 'menu' 
   $scope.game = {}
   $scope.messages = []
+  $scope.allColours = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'WHITE']
 
   $scope.$on('identityChange', function(event, newName) {
     $scope.alias = newName 
@@ -108,5 +109,8 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
 
   var renderGame = function(game) {
     $scope.game = game
+    if (game.isRainbow) {
+      $scope.allColours = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'WHITE', 'RAINBOW']
+    }
   }
 }]);
