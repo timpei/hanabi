@@ -27,3 +27,15 @@
 	padding-top: 3px;
 	padding-bottom: 3px;
 }
+
+#stats {
+    float: left;
+}
+
+#stats p {
+    margin: 0 0 0 3px;
+}
+
+#stats span {
+    margin: 0 1px;
+}

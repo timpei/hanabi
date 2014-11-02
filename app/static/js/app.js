@@ -5,6 +5,7 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
   $scope.game = {}
   $scope.messages = []
   $scope.allColours = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'WHITE']
+  $scope.jumbotron = ''
 
   $scope.$on('identityChange', function(event, newName) {
     $scope.alias = newName 
@@ -111,6 +112,15 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
     $scope.game = game
     if (game.isRainbow) {
       $scope.allColours = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'WHITE', 'RAINBOW']
+    }
+    if ($scope.game.hasEnded) {
+      $scope.jumbotron = "The game has ended! Score: " + $scope.game.score
+    } else {
+      $scope.jumbotron = ''
+      if ($scope.game.turnsLeft > 0) {
+        $scope.jumbotron += $scope.game.turnsLeft + " turns left before game ends!"
+      }
+      $scope.jumbotron += $scope.game.currentPlayer + "'s Turn."
     }
   }
 }]);

@@ -4,6 +4,7 @@
   <div id="stats">
     <p>Lives: <span class="glyphicon glyphicon-heart" ng-repeat="live in range(game.numLives) track by $index"></span>
     <p>Hints: <span class="glyphicon glyphicon-time" ng-repeat="hint in range(game.numHints) track by $index"></span>
+    <p>Cards left: {{game.numCardsRemaining}}</span>
   </div>
 </div>
 <div class="row">
@@ -19,7 +20,7 @@
     </div>
     <div class="col-md-5">
         <div class="panel panel-default status-board">
-            <p><strong>{{game.currentPlayer}}'s Turn</strong></p>
+            <p><strong>{{jumbotron}}</strong></p>
         </div>
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -32,9 +33,9 @@
         <div class="panel panel-default">
             <div class="panel-body">
                 <div class="btn-group player-actions">
-                    <button class="btn btn-success" ng-class="{'active': option == 'playCard'}" ng-click="changeAction('playCard')" ng-disabled="game.currentPlayer != alias">Play</button>
-                    <button class="btn btn-danger" ng-class="{'active': option == 'discardCard'}" ng-click="changeAction('discardCard')" ng-disabled="game.currentPlayer != alias">Discard</button>
-                    <button class="btn btn-warning" ng-class="{'active': option == 'giveHint'}" ng-click="changeAction('giveHint')" ng-disabled="game.currentPlayer != alias || game.numHints == 0">Hint</button>
+                    <button class="btn btn-success" ng-class="{'active': option == 'playCard'}" ng-click="changeAction('playCard')" ng-disabled="game.currentPlayer != alias || game.hasEnded">Play</button>
+                    <button class="btn btn-danger" ng-class="{'active': option == 'discardCard'}" ng-click="changeAction('discardCard')" ng-disabled="game.currentPlayer != alias || game.hasEnded">Discard</button>
+                    <button class="btn btn-warning" ng-class="{'active': option == 'giveHint'}" ng-click="changeAction('giveHint')" ng-disabled="game.currentPlayer != alias || game.numHints == 0 || game.hasEnded">Hint</button>
                 </div>
             </div>
             <ul class="list-group" ng-if="option != ''">
@@ -62,7 +63,7 @@
                       <button ng-repeat="i in range(5) track by $index" type="button" class="btn btn-default" ng-class="{'btn-warning': hintForm.hint == $index + 1}" ng-click="selectHint($index+1, 'number')" ng-disabled="!canHintPlayer(hintForm.toName, $index + 1, 'number')">{{$index + 1}}</button>
                     </div>
                     <div class="btn-group">
-                      <button ng-repeat="suit in allColours" type="button" class="btn btn-default hint-btn" ng-class="{'btn-warning': hintForm.hint == suit}" ng-click="selectHint(suit, 'suit')" ng-disabled="!canHintPlayer(hintForm.toName, suit, 'suit')">
+                      <button ng-repeat="suit in allColours" type="button" class="btn btn-default hint-btn" ng-class="{'btn-warning': hintForm.hint == suit}" ng-click="selectHint(suit, 'suit')" ng-disabled="!canHintPlayer(hintForm.toName, suit, 'suit')" ng-if="suit != 'RAINBOW'">
                         <div class="hint-box {{suit.toLowerCase()}}-card"}></div>
                       </button>
                     </div>

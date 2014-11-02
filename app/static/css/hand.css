@@ -52,19 +52,6 @@
     background: #222;
 }
 
-#stats {
-    float: left;
-    margin: 7px 5px 0 7px;
-}
-
-#stats p {
-    margin: 0 0 0 3px;
-}
-
-#stats span {
-    margin: 0 1px;
-}
-
 .card {
     border: 3px solid black;
     float: left;
