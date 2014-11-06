@@ -2,7 +2,7 @@ hanabiApp.controller('gameTableController', ['$scope', 'socketio', function($sco
   $scope.option = ''
   $scope.playerPos = getPlayerIndex()
   $scope.joinedGame = false
-  $scope.viewThirdPerspective = []
+  $scope.viewThirdPerspective = {}
 
   $scope.playForm = {
     cardIndex: -1
