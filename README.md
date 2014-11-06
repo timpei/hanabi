@@ -157,7 +157,7 @@ emit('createGame', {
 ###Enter Game
 Enter a game room. Player will become a spectator.
 * **Send**
-```
+```javascript
 emit('enterGame', {
     gameId: int
     name: string
@@ -186,7 +186,7 @@ emit('enterGame', {
 ###Resume Game
 Resume or re-join a game. Player must be already a player or spectator prior to the call.
 * **Send**
-```
+```javascript
 emit('resumeGame', {
     gameId: int
     name: string
@@ -214,7 +214,7 @@ emit('resumeGame', {
 ###Join Game
 Join a game. Player must be a spectator prior to the call. Will fail if number of joined players is at max (5).
 * **Send**
-```
+```javascript
 emit('joinGame', {
     gameId: int
     name: string
@@ -243,7 +243,7 @@ emit('joinGame', {
 ###Leave Game
 Leave the game, i.e. not receiving future socket messages from the game room. Player can always resume game later.
 * **Send**
-```
+```javascript
 emit('leaveGame', {
     gameId: int
     name: string
@@ -257,11 +257,12 @@ emit('leaveGame', {
         'success': boolean,
         }
 }
+```
 
 ###Start Game
 Start a game. Can only start a game that hasn't been started yet. This will create a deck and deal cards to players.
 * **Send**
-```
+```javascript
 emit('startGame', {
     gameId: int
 }
@@ -288,7 +289,7 @@ emit('startGame', {
 ###Send Message
 Send a message to everyone in the game.
 * **Send**
-```
+```javascript
 emit('sendMessage', {
     gameId: int,
     name: string,
@@ -309,7 +310,7 @@ emit('sendMessage', {
 ###Give Hint
 Gives a hint to another player. Must be the player's turn to play. `hintType` can either be "number" or "colour".
 * **Send**
-```
+```javascript
 emit('giveHint', {
     gameId: int,
     hintType: string,
@@ -344,7 +345,7 @@ emit('giveHint', {
 
 ###Discard Card
 * **Send**
-```
+```javascript
 emit('discardCard', {
     gameId: int,
     name: string,
@@ -365,7 +366,7 @@ emit('discardCard', {
 
 ###Play Card
 * **Send**
-```
+```javascript
 emit('playCard', {
     gameId: int,
     name: string,
@@ -386,7 +387,7 @@ emit('playCard', {
 
 ###End Game
 * **Send**
-```
+```javascript
 emit('endGame', {
     gameId: int,
     name: string
