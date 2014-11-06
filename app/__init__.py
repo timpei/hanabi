@@ -128,6 +128,19 @@ def resumeGame(msg, db):
                 }
             }, json=True)
 
+@socketio.on('leaveGame')
+@eventInject(logger=True)
+def leaveGame(msg, db):
+    gameId = msg['gameId']
+    name = msg['name']
+
+    leave_room(gameId)
+    send({
+        'event': 'leaveGame',
+        'payload' : {
+            'success': True
+        }}, json=True)
+
 @socketio.on('startGame')
 @eventInject(logger=True, db=True)
 def startGame(msg, db):

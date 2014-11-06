@@ -240,6 +240,24 @@ emit('joinGame', {
 }
 ```
 
+###Leave Game
+Leave the game, i.e. not receiving future socket messages from the game room. Player can always resume game later.
+* **Send**
+```
+emit('leaveGame', {
+    gameId: int
+    name: string
+}
+```
+* **Broadcast**
+```javascript
+{
+    'event': 'leaveGame',
+    'payload' : {
+        'success': boolean,
+        }
+}
+
 ###Start Game
 Start a game. Can only start a game that hasn't been started yet. This will create a deck and deal cards to players.
 * **Send**
