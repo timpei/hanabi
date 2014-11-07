@@ -184,6 +184,9 @@ def sendMessage(msg):
     message = msg['message']
     name = msg['name']
 
+    messageJSON = json.dumps({'message': message})
+    db.execute("INSERT INTO messages (gameId, name, type, messageJSON) VALUES (%d, '%s', 'MESSAGE', '%s')" % (gameId, name, messageJSON))
+    
     send({
         'event': 'sendMessage',
         'payload' : {
