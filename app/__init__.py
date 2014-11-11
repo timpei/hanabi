@@ -158,8 +158,10 @@ def startGame(msg, db):
         deck = hanabi.startGameAndGetDeck(game, players)
         queries = []
         for player in players:
-            queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
-        queries.append("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
+            queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" 
+                    % (json.dumps(player['hand']), gameId, player['name']))
+        queries.append("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" 
+                % (json.dumps(game), json.dumps(deck), gameId))
         db.bulkExecute(queries)   
 
         game = getGame(gameId)
@@ -257,8 +259,10 @@ def discardCard(msg, db):
     hanabi.endTurn(game)
 
     queries = []
-    queries.append("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
-    queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
+    queries.append("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" 
+            % (json.dumps(game), json.dumps(deck), gameId))
+    queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" 
+            % (json.dumps(player['hand']), gameId, player['name']))
     db.bulkExecute(queries)
 
     game = getGame(gameId)
@@ -291,7 +295,8 @@ def playCard(msg, db):
     
     queries = []
     queries.append("UPDATE games SET gameJSON='%s', deckJSON='%s' WHERE id=%s" % (json.dumps(game), json.dumps(deck), gameId))
-    queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
+    queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" 
+            % (json.dumps(player['hand']), gameId, player['name']))
     db.bulkExecute(queries)
         
     game = getGame(gameId)

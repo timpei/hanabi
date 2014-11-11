@@ -72,17 +72,18 @@ def storeHintMsg(gameId, fromName, toName, hintType, hint, cardsHinted):
         "cardsHinted": cardsHinted,
         "from": fromName,
         "to": toName,
-        "message": "%s, your %s %s %s." % (fromName, toName, cardsWithRank, cardsare, hint if hintType is 'number' else hint.lower())
+        "message": "%s, your %s %s %s." 
+                % (fromName, toName, cardsWithRank, cardsare, hint if hintType is 'number' else hint.lower())
     }
     db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'HINT', '%s')" 
-        % (gameId, fromName, msgJSON, time.time()))
+            % (gameId, fromName, msgJSON, time.time()))
     
 def storeMsg(gameId, fromName, message):
     msgJSON = {
         "message": message
     }
     db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'MESSAGE', '%s')" 
-        % (gameId, fromName, msgJSON, time.time()))
+            % (gameId, fromName, msgJSON, time.time()))
 
 def storeDiscardMsg(gameId, fromName, card):
     msgJSON = {
@@ -91,7 +92,7 @@ def storeDiscardMsg(gameId, fromName, card):
         "message": "%s discarded the %s %s" % (fromName, card.suit.lower(), card.number)
     }
     db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'DISCARD', '%s')" 
-        % (gameId, fromName, msgJSON, time.time()))
+            % (gameId, fromName, msgJSON, time.time()))
 
 def storePlayMsg(gameId, fromName, card):
     msgJSON = {
@@ -100,7 +101,7 @@ def storePlayMsg(gameId, fromName, card):
         "message": "%s played the %s %s" % (fromName, card.suit.lower(), card.number)
     }
     db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'PLAY', '%s')" 
-        % (gameId, fromName, msgJSON, time.time()))
+            % (gameId, fromName, msgJSON, time.time()))
 
 def eventInject(logger=False, db=False):
     def decorate(func):
