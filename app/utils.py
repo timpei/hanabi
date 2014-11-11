@@ -43,6 +43,65 @@ def getGame(gameId):
 
     return game
 
+def storeHintMsg(gameId, fromName, toName, hintType, hint, cardsHinted):
+    cardsString = ""
+
+    def postpendRank(i):
+        if i == 1:
+            return "1st"
+        elif i == 2:
+            return "2nd"
+        elif i == 3:
+            return "3rd"
+        else:
+            return "%dth" % i
+
+    cardsWithRank = map(postpendRank, cardsHinted)
+    for idx, card in enumerate(cardsWithRank):
+        cardsString += card
+        if idx + 2 < len(cardsWithRank):
+            cardsString += ", "
+        elif idx + 1 < len(cardsWithRank):
+            cardsString += " and "
+
+    cardsare = "card is" if len(cardsWithRank) == 1 else "cards are"
+
+    msgJSON = {
+        "hintType": hintType,
+        "hint": hint,
+        "cardsHinted": cardsHinted,
+        "from": fromName,
+        "to": toName,
+        "message": "%s, your %s %s %s." % (fromName, toName, cardsWithRank, cardsare, hint if hintType is 'number' else hint.lower())
+    }
+    db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'HINT', '%s')" 
+        % (gameId, fromName, msgJSON, time.time()))
+    
+def storeMsg(gameId, fromName, message):
+    msgJSON = {
+        "message": message
+    }
+    db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'MESSAGE', '%s')" 
+        % (gameId, fromName, msgJSON, time.time()))
+
+def storeDiscardMsg(gameId, fromName, card):
+    msgJSON = {
+        "name": name,
+        "card": card,
+        "message": "%s discarded the %s %s" % (fromName, card.suit.lower(), card.number)
+    }
+    db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'DISCARD', '%s')" 
+        % (gameId, fromName, msgJSON, time.time()))
+
+def storePlayMsg(gameId, fromName, card):
+    msgJSON = {
+        "name": name,
+        "card": card,
+        "message": "%s played the %s %s" % (fromName, card.suit.lower(), card.number)
+    }
+    db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'PLAY', '%s')" 
+        % (gameId, fromName, msgJSON, time.time()))
+
 def eventInject(logger=False, db=False):
     def decorate(func):
         if db:

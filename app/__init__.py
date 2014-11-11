@@ -1,12 +1,13 @@
 import os, sys
 import json
 import logging
+import time
 
 from flask import Flask, jsonify, request, make_response
 from flask.ext.socketio import SocketIO, send, join_room, leave_room
 
 import hanabi
-from utils import parsePlayer, getGame, eventInject
+from utils import parsePlayer, getGame, eventInject, storeHintMsg, storePlayMsg, storeDiscardMsg, storeMsg
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEBUG = True
@@ -178,15 +179,14 @@ def startGame(msg, db):
         
 
 @socketio.on('sendMessage')
-@eventInject(logger=True)
-def sendMessage(msg):
+@eventInject(logger=True, db=True)
+def sendMessage(msg, db):
     gameId = msg['gameId']
     message = msg['message']
     name = msg['name']
 
-    messageJSON = json.dumps({'message': message})
-    db.execute("INSERT INTO messages (gameId, name, type, messageJSON) VALUES (%d, '%s', 'MESSAGE', '%s')" % (gameId, name, messageJSON))
-    
+    storeMsg(gameId, name, message)
+
     send({
         'event': 'sendMessage',
         'payload' : {
@@ -215,6 +215,8 @@ def giveHint(msg, db):
 
         db.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
         db.execute("UPDATE players SET handJSON='%s' WHERE name='%s'" % (json.dumps(toPlayer['hand']), toPlayer['name']))
+
+        storeHintMsg(gameId, name, toName, hintType, hint, cardsHinted)
 
         game = getGame(gameId)
         send({
@@ -260,6 +262,7 @@ def discardCard(msg, db):
     db.bulkExecute(queries)
 
     game = getGame(gameId)
+    storeDiscardMsg(gameId, name, discardCard)
     send({
         'event': 'discardCard',
         'payload' : {
@@ -291,8 +294,8 @@ def playCard(msg, db):
     queries.append("UPDATE players SET handJSON='%s' WHERE gameId=%d AND name='%s'" % (json.dumps(player['hand']), gameId, player['name']))
     db.bulkExecute(queries)
         
-
     game = getGame(gameId)
+    storePlayMsg(gameId, name, playedCard)
     send({
         'event': 'playCard',
         'payload' : {

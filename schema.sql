@@ -1,7 +1,7 @@
 DROP TABLE if exists games;
 DROP TABLE if exists players;
 DROP TABLE if exists messages;
-CREATE TYPE msgType AS ENUM ('MESSAGE', 'ACTION');
+CREATE TYPE msgType AS ENUM ('MESSAGE', 'HINT', 'DISCARD', 'PLAY');
 
 CREATE TABLE games (
 	id serial primary key,
@@ -22,5 +22,6 @@ CREATE TABLE messages (
 	gameId integer not null,
 	name text not null,
 	type msgType not null,
-	messageJSON text not null
+	messageJSON text not null,
+	time integer not null
 );
