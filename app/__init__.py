@@ -187,7 +187,7 @@ def sendMessage(msg, db):
     message = msg['message']
     name = msg['name']
 
-    storeMsg(gameId, name, message)
+    storeMsg(db, gameId, name, message)
 
     send({
         'event': 'sendMessage',
@@ -218,7 +218,7 @@ def giveHint(msg, db):
         db.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
         db.execute("UPDATE players SET handJSON='%s' WHERE name='%s'" % (json.dumps(toPlayer['hand']), toPlayer['name']))
 
-        storeHintMsg(gameId, name, toName, hintType, hint, cardsHinted)
+        storeHintMsg(db, gameId, name, toName, hintType, hint, cardsHinted)
 
         game = getGame(gameId)
         send({
@@ -266,7 +266,7 @@ def discardCard(msg, db):
     db.bulkExecute(queries)
 
     game = getGame(gameId)
-    storeDiscardMsg(gameId, name, discardCard)
+    storeDiscardMsg(db, gameId, name, discardedCard)
     send({
         'event': 'discardCard',
         'payload' : {
@@ -300,7 +300,7 @@ def playCard(msg, db):
     db.bulkExecute(queries)
         
     game = getGame(gameId)
-    storePlayMsg(gameId, name, playedCard)
+    storePlayMsg(db, gameId, name, playedCard)
     send({
         'event': 'playCard',
         'payload' : {

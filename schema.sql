@@ -1,6 +1,7 @@
 DROP TABLE if exists games;
 DROP TABLE if exists players;
 DROP TABLE if exists messages;
+DROP TYPE if exists msgType;
 CREATE TYPE msgType AS ENUM ('MESSAGE', 'HINT', 'DISCARD', 'PLAY');
 
 CREATE TABLE games (
