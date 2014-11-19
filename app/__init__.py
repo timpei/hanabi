@@ -22,7 +22,7 @@ def loadGame(gameId):
     return jsonify(**getGame(gameId))
 
 @socketio.on('createGame')
-@eventInject(logger=True, db=True)
+@eventInject()
 def createGame(msg, db):
     rainbow = msg['isRainbow']
     name = msg['name']
@@ -42,7 +42,7 @@ def createGame(msg, db):
         }, json=True, room=gameId)
 
 @socketio.on('enterGame')
-@eventInject(logger=True, db=True)
+@eventInject()
 def enterGame(msg, db):
     gameId = msg['gameId']
     name = msg['name']
@@ -74,7 +74,7 @@ def enterGame(msg, db):
             }, json=True, room=gameId)
 
 @socketio.on('joinGame')
-@eventInject(logger=True, db=True)
+@eventInject()
 def joinGame(msg, db):
     gameId = msg['gameId']
     name = msg['name']
@@ -104,7 +104,7 @@ def joinGame(msg, db):
         
 
 @socketio.on('resumeGame')
-@eventInject(logger=True, db=True)
+@eventInject()
 def resumeGame(msg, db):
     gameId = msg['gameId']
     name = msg['name']
@@ -143,7 +143,7 @@ def leaveGame(msg, db):
         }}, json=True)
 
 @socketio.on('startGame')
-@eventInject(logger=True, db=True)
+@eventInject()
 def startGame(msg, db):
     gameId = msg['gameId']
 
@@ -181,7 +181,7 @@ def startGame(msg, db):
         
 
 @socketio.on('sendMessage')
-@eventInject(logger=True, db=True)
+@eventInject()
 def sendMessage(msg, db):
     gameId = msg['gameId']
     message = msg['message']
@@ -198,7 +198,7 @@ def sendMessage(msg, db):
         }, json=True, room=gameId)
 
 @socketio.on('giveHint')
-@eventInject(logger=True, db=True)
+@eventInject()
 def giveHint(msg, db):
     gameId = msg['gameId']
     hintType = msg['hintType']
@@ -242,7 +242,7 @@ def giveHint(msg, db):
         
 
 @socketio.on('discardCard')
-@eventInject(logger=True, db=True)
+@eventInject()
 def discardCard(msg, db):
     gameId = msg['gameId']
     name = msg['name']
@@ -277,7 +277,7 @@ def discardCard(msg, db):
         }, json=True, room=gameId)
 
 @socketio.on('playCard')
-@eventInject(logger=True, db=True)
+@eventInject()
 def playCard(msg, db):
     gameId = msg['gameId']
     name = msg['name']
@@ -311,7 +311,7 @@ def playCard(msg, db):
         }, json=True, room=gameId)
 
 @socketio.on('endGame')
-@eventInject(logger=True, db=True)
+@eventInject()
 def endGame(msg, db):
     gameId = msg['gameId']
 

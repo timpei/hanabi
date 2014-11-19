@@ -108,7 +108,7 @@ def storePlayMsg(db, gameId, fromName, card):
     db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'PLAY', '%s', %d)" 
             % (gameId, fromName, json.dumps(msgJSON), time.time()))
 
-def eventInject(logger=False, db=False):
+def eventInject(logger=True, db=True):
     def decorate(func):
         if db:
             dbInst = DatabaseService()
