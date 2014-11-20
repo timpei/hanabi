@@ -13,12 +13,12 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEBUG = True
 
 # For DEBUG
-def send(msg, *args, **kwargs):
-    print msg
-def join_room(*args, **kwargs):
-    print 'joined room'
-def leave_room(*args, **kwargs):
-    print 'leave room'
+#def send(msg, *args, **kwargs):
+#    print msg
+#def join_room(*args, **kwargs):
+#    print 'joined room'
+#def leave_room(*args, **kwargs):
+#    print 'leave room'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
