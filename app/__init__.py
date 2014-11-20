@@ -7,23 +7,33 @@ from flask import Flask, jsonify, request, make_response
 from flask.ext.socketio import SocketIO, send, join_room, leave_room
 
 import hanabi
-from utils import parsePlayer, getGame, eventInject, storeHintMsg, storePlayMsg, storeDiscardMsg, storeMsg
+from utils import parsePlayer, getGame, eventInject
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEBUG = True
+
+# For DEBUG
+def send(msg, *args, **kwargs):
+    print msg
+def join_room(*args, **kwargs):
+    print 'joined room'
+def leave_room(*args, **kwargs):
+    print 'leave room'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 socketio = SocketIO(app)
 logging.basicConfig()
 
+
 @app.route('/api/game/<int:gameId>', methods=['GET'])
 def loadGame(gameId):
     return jsonify(**getGame(gameId))
 
+
 @socketio.on('createGame')
 @eventInject()
-def createGame(msg, db):
+def createGame(msg, db, gameMsg):
     rainbow = msg['isRainbow']
     name = msg['name']
 
@@ -33,17 +43,17 @@ def createGame(msg, db):
 
     join_room(gameId)
     game = getGame(gameId)
+    gameMsg.buildEnterGame()
     send({
         'event': 'enterGame',
-        'payload' : {
-            'name': name,
-            'game': game,
-            }
+        'message' : gameMsg.message,
+        'game': game
         }, json=True, room=gameId)
+
 
 @socketio.on('enterGame')
 @eventInject()
-def enterGame(msg, db):
+def enterGame(msg, db, gameMsg):
     gameId = msg['gameId']
     name = msg['name']
 
@@ -65,17 +75,17 @@ def enterGame(msg, db):
         db.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
         game = getGame(gameId)
         join_room(gameId)
+        gameMsg.buildEnterGame()
         send({
             'event': 'enterGame',
-            'payload' : {
-                'name': name,
-                'game': game,
-                }
+            'message' : gameMsg.message,
+            'game': game
             }, json=True, room=gameId)
+
 
 @socketio.on('joinGame')
 @eventInject()
-def joinGame(msg, db):
+def joinGame(msg, db, gameMsg):
     gameId = msg['gameId']
     name = msg['name']
 
@@ -87,12 +97,11 @@ def joinGame(msg, db):
         db.execute("UPDATE players SET joined=1 WHERE gameId=%d AND name='%s'" % (gameId, name))
         
         game = getGame(gameId)
+        gameMsg.buildJoinGame()
         send({
             'event': 'joinGame',
-            'payload' : {
-                'name': name,
-                'game': game,
-                }
+            'message' : gameMsg.message,
+            'game': game
             }, json=True, room=gameId)
     else:
         send({
@@ -105,7 +114,7 @@ def joinGame(msg, db):
 
 @socketio.on('resumeGame')
 @eventInject()
-def resumeGame(msg, db):
+def resumeGame(msg, db, gameMsg):
     gameId = msg['gameId']
     name = msg['name']
 
@@ -114,12 +123,11 @@ def resumeGame(msg, db):
     if len(players) != 0:
         join_room(gameId)
         game = getGame(gameId)
+        gameMsg.buildResumeGame()
         send({
             'event': 'resumeGame',
-            'payload' : {
-                'name': name,
-                'game': game,
-                }
+            'message' : gameMsg.message,
+            'game': game
             }, json=True, room=gameId)
     else:
         send({
@@ -129,22 +137,25 @@ def resumeGame(msg, db):
                 }
             }, json=True)
 
+
 @socketio.on('leaveGame')
-@eventInject(logger=True)
-def leaveGame(msg, db):
+@eventInject()
+def leaveGame(msg, db, gameMsg):
     gameId = msg['gameId']
     name = msg['name']
 
     leave_room(gameId)
+    gameMsg.buildLeaveGame()
     send({
         'event': 'leaveGame',
-        'payload' : {
-            'success': True
-        }}, json=True)
+        'message' : gameMsg.message,
+        'game': {}          # no game returned since it doesn't change the game state
+        }, json=True)
+
 
 @socketio.on('startGame')
 @eventInject()
-def startGame(msg, db):
+def startGame(msg, db, gameMsg):
     gameId = msg['gameId']
 
     gameResult = db.fetchone('SELECT gameJSON FROM games WHERE id=%d; ' % gameId)
@@ -165,11 +176,11 @@ def startGame(msg, db):
         db.bulkExecute(queries)   
 
         game = getGame(gameId)
+        gameMsg.buildStartGame()
         send({
             'event': 'startGame',
-            'payload' : {
-                'game': game,
-                }
+            'message' : gameMsg.message,
+            'game': game
             }, json=True, room=gameId)
     else:
         send({
@@ -182,24 +193,23 @@ def startGame(msg, db):
 
 @socketio.on('sendMessage')
 @eventInject()
-def sendMessage(msg, db):
+def sendMessage(msg, db, gameMsg):
     gameId = msg['gameId']
     message = msg['message']
     name = msg['name']
 
     storeMsg(db, gameId, name, message)
-
+    gameMsg.buildMsg(message)
     send({
         'event': 'sendMessage',
-        'payload' : {
-            'message': message,
-            'name': name
-            }
+        'message' : gameMsg.message,
+        'game': {}
         }, json=True, room=gameId)
+
 
 @socketio.on('giveHint')
 @eventInject()
-def giveHint(msg, db):
+def giveHint(msg, db, gameMsg):
     gameId = msg['gameId']
     hintType = msg['hintType']
     name = msg['name']
@@ -221,16 +231,11 @@ def giveHint(msg, db):
         storeHintMsg(db, gameId, name, toName, hintType, hint, cardsHinted)
 
         game = getGame(gameId)
+        gameMsg.buildHint(toName, hintType, hint, cardsHinted)
         send({
             'event': 'giveHint',
-            'payload' : {
-                "hintType": hintType,
-                "hint": hint,
-                "cardsHinted": cardsHinted,
-                "from": name,
-                "to": toName,
-                "game": game
-                }
+            'message' : gameMsg.message,
+            'game': game
             }, json=True, room=gameId)
     else:
         send({
@@ -243,7 +248,7 @@ def giveHint(msg, db):
 
 @socketio.on('discardCard')
 @eventInject()
-def discardCard(msg, db):
+def discardCard(msg, db, gameMsg):
     gameId = msg['gameId']
     name = msg['name']
     cardIndex = msg['cardIndex']
@@ -267,18 +272,16 @@ def discardCard(msg, db):
 
     game = getGame(gameId)
     storeDiscardMsg(db, gameId, name, discardedCard)
+    gameMsg.buildDiscard(discardCard)
     send({
         'event': 'discardCard',
-        'payload' : {
-            "name": name,
-            "card": discardedCard,
-            "game": game,
-            }
+        'message' : gameMsg.message,
+        'game': game
         }, json=True, room=gameId)
 
 @socketio.on('playCard')
 @eventInject()
-def playCard(msg, db):
+def playCard(msg, db, gameMsg):
     gameId = msg['gameId']
     name = msg['name']
     cardIndex = msg['cardIndex']
@@ -301,18 +304,16 @@ def playCard(msg, db):
         
     game = getGame(gameId)
     storePlayMsg(db, gameId, name, playedCard)
+    gameMsg.buildPlay(playedCard)
     send({
         'event': 'playCard',
-        'payload' : {
-            "name": name,
-            "card": playedCard,
-            "game": game,
-            }
+        'message' : gameMsg.message,
+        'game': game
         }, json=True, room=gameId)
 
 @socketio.on('endGame')
 @eventInject()
-def endGame(msg, db):
+def endGame(msg, db, gameMsg):
     gameId = msg['gameId']
 
     gameRes = db.fetchone('SELECT gameJSON, deckJSON FROM games WHERE id=%d; ' % gameId)
@@ -320,10 +321,12 @@ def endGame(msg, db):
 
     hanabi.giveUp(game)
     db.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
-
+    
+    gameMsg.buildEndGame()
     send({
         'event': 'endGame',
-        'payload' : {}
+        'message' : gameMsg.message,
+        'game': game
         }, json=True, room=gameId)
 
 @app.route('/')

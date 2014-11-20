@@ -6,6 +6,8 @@ import time
 
 from functools import wraps
 
+from messages import MessageBuilder
+
 def parsePlayer(playerRes):
     return {
         'name': playerRes[0],
@@ -43,86 +45,26 @@ def getGame(gameId):
 
     return game
 
-def storeHintMsg(db, gameId, fromName, toName, hintType, hint, cardsHinted):
-    cardsString = ""
+def storeMsg(msgObj):
+    db = DatabaseService()
+    db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', '%s', '%s', %d)" 
+            % (msgObj.gameId, msgObj.message['name'], msgObj.message['type'], json.dumps(msgObj.message), msgObj.message['time']))
+    db.close()
 
-    def postpendRank(i):
-        if i == 1:
-            return "1st"
-        elif i == 2:
-            return "2nd"
-        elif i == 3:
-            return "3rd"
-        else:
-            return "%dth" % i
-
-    cardsWithRank = map(postpendRank, cardsHinted)
-    for idx, card in enumerate(cardsWithRank):
-        cardsString += card
-        if idx + 2 < len(cardsWithRank):
-            cardsString += ", "
-        elif idx + 1 < len(cardsWithRank):
-            cardsString += " and "
-
-    cardsare = "card is" if len(cardsWithRank) == 1 else "cards are"
-    print hintType
-    print hint
-    if hintType != 'number':
-        message = "%s, your %s %s %s. -from %s" % (toName, cardsString, cardsare, hint.lower(), fromName)
-    else:
-        message = "%s, your %s %s %d. -from %s" % (toName, cardsString, cardsare, hint, fromName)
-
-    msgJSON = {
-        "hintType": hintType,
-        "hint": hint,
-        "cardsHinted": cardsHinted,
-        "from": fromName,
-        "to": toName,
-        "message": message
-    }
-    db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'HINT', '%s', %d)" 
-            % (gameId, fromName, json.dumps(msgJSON), time.time()))
-    
-def storeMsg(db, gameId, fromName, message):
-    msgJSON = {
-        "message": message
-    }
-    db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'MESSAGE', '%s', %d)" 
-            % (gameId, fromName, json.dumps(msgJSON), time.time()))
-
-def storeDiscardMsg(db, gameId, fromName, card):
-    msgJSON = {
-        "name": fromName,
-        "card": card,
-        "message": "%s discarded the %s %s" % (fromName, card['suit'].lower(), card['number'])
-    }
-    db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'DISCARD', '%s', %d)" 
-            % (gameId, fromName, json.dumps(msgJSON), time.time()))
-
-def storePlayMsg(db, gameId, fromName, card):
-    msgJSON = {
-        "name": fromName,
-        "card": card,
-        "message": "%s played the %s %s" % (fromName, card['suit'].lower(), card['number'])
-    }
-    db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', 'PLAY', '%s', %d)" 
-            % (gameId, fromName, json.dumps(msgJSON), time.time()))
-
-def eventInject(logger=True, db=True):
+def eventInject():
     def decorate(func):
-        if db:
-            dbInst = DatabaseService()
+        dbInst = DatabaseService()
         @wraps(func)
         def wrapper(msg):
+            gameId = 0 if (not 'gameId' in msg) else msg['gameId']
+            name = 0 if (not 'name' in msg) else msg['name']
+            gameMsg = MessageBuilder(gameId, name)
             print "%s [socketio]: %s request with payload: %s" % (time.asctime(time.localtime(time.time())), func.__name__, msg)
-            if db:
-                result = func(msg, db=dbInst)
-            else:
-                result = func(msg)
+            result = func(msg, db=dbInst, gameMsg=gameMsg)
+            storeMsg(gameMsg)
             return result
         return wrapper
-        if db:
-            dbInst.close()
+        dbInst.close()
     return decorate
 
 
