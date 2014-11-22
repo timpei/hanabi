@@ -81,7 +81,7 @@ def giveHint(game, toPlayer, hintType, hint):
             if not alreadyHinted:
                 card['knownSuit'].append(hint)
             cardsHinted.append(idx)
-        if hintType == 'number' and card['number'] == hint:
+        if hintType == 'NUMBER' and card['number'] == hint:
             card['knowNumber'] = True
             cardsHinted.append(idx)
 

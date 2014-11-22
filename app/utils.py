@@ -48,7 +48,7 @@ def getGame(gameId):
 def storeMsg(msgObj):
     db = DatabaseService()
     db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', '%s', '%s', %d)" 
-            % (msgObj.gameId, msgObj.message['name'], msgObj.message['type'], json.dumps(msgObj.message), msgObj.message['time']))
+            % (msgObj.gameId, msgObj.message['name'], msgObj.message['type'], json.dumps(msgObj.message), int(msgObj.message['time'])))
     db.close()
 
 def eventInject():
@@ -61,7 +61,8 @@ def eventInject():
             gameMsg = MessageBuilder(gameId, name)
             print "%s [socketio]: %s request with payload: %s" % (time.asctime(time.localtime(time.time())), func.__name__, msg)
             result = func(msg, db=dbInst, gameMsg=gameMsg)
-            storeMsg(gameMsg)
+            if gameMsg.message['type'] is not 'ROOM':
+                storeMsg(gameMsg)
             return result
         return wrapper
         dbInst.close()
