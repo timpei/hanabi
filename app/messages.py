@@ -68,7 +68,7 @@ class MessageBuilder:
                 cardsString += " and "
 
         cardsare = "card is a" if len(cardsWithRank) == 1 else "cards are"
-        if hintType != 'NUMBER':
+        if hintType.lower() != 'number':
             message = "%s, your %s %s %s. -%s" % (toName, cardsString, cardsare, hint.lower(), self.message['name'])
         else:
             message = "%s, your %s %s %d. -%s" % (toName, cardsString, cardsare, hint, self.message['name'])

@@ -23,83 +23,31 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
       alert(msg.error.event + ": " + msg.error.reason)
     } else {
       var e = msg.event
-      var payload = msg.payload
+      var game = msg.game
+
+      $scope.messages.push(msg.message)
       switch (e) {
         case 'sendMessage':
-          $scope.messages.push({
-            type: 'chat',
-            name: payload.name,
-            message: payload.message
-          })
-          break
-        case 'resumeGame':
-          $scope.messages.push({
-            type: 'announcement',
-            message: payload.name + " resumed the game!",
-          })
-          renderGame(payload.game)
-          break
-        case 'enterGame':
-          $scope.messages.push({
-            type: 'announcement',
-            message: payload.name + " entered the game!",
-          })
-          renderGame(payload.game)
           break
         case 'joinGame':
-          $scope.messages.push({
-            type: 'announcement',
-            message: payload.name + " joined the game as a player!",
-          })
-          renderGame(payload.game)
-          if (payload.name == $scope.alias) {
+          renderGame(game)
+          if (msg.message.name == $scope.alias) {
             $scope.$broadcast('successfulJoin')
           }
+          renderGame(game)
           break
         case 'startGame':
-          $scope.messages.push({
-            type: 'announcement',
-            message: "Game started!",
-          })
-          renderGame(payload.game)
+          renderGame(game)
           $scope.$broadcast('gameStarted')
           break
         case 'giveHint':
-          for (var i = 0; i < payload.cardsHinted.length; i++) {
-            payload.cardsHinted[i] = payload.cardsHinted[i] + 1
-          }
-          $scope.messages.push({
-            type: 'announcement',
-            message: payload.from + " told " + payload.to + " cards " +
-                      payload.cardsHinted + " are " + payload.hint,
-          })
-          $scope.$broadcast('gameUpdated')
-          renderGame(payload.game)
-          break
         case 'discardCard':
-          $scope.messages.push({
-            type: 'announcement',
-            message: payload.name + " discarded a " + payload.card.suit + " " + 
-                      payload.card.number + ". ",
-          })
-          $scope.$broadcast('gameUpdated')
-          renderGame(payload.game)
-          break
         case 'playCard':
-          $scope.messages.push({
-            type: 'announcement',
-            message: payload.name + " played a " + payload.card.suit + " " + 
-                      payload.card.number + ". ",
-          })
           $scope.$broadcast('gameUpdated')
-          renderGame(payload.game)
-          break
+        case 'resumeGame':
+        case 'enterGame':
         case 'endGame':
-          $scope.messages.push({
-            type: 'announcement',
-            message: payload.name + " ended the game.",
-          })
-          renderGame(payload.game)
+          renderGame(game)
           break
       }
 
