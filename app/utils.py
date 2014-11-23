@@ -22,12 +22,10 @@ def parseSpectator(spectatorsRes):
         'name': spectatorsRes[0]
     }
 
-def getGame(gameId):
-    db = DatabaseService()
+def getGame(db, gameId):
     game = json.loads(db.fetchone('SELECT gameJSON FROM games WHERE id = %d; ' % gameId)[0])
     players = db.fetchall('SELECT name, handJSON FROM players WHERE gameId = %d AND joined=1; ' % gameId)
     spectators = db.fetchall('SELECT name FROM players WHERE gameId = %d AND joined=0; ' % gameId)
-    db.close()
 
     game['id'] = gameId
     game['spectators'] = []
@@ -48,11 +46,9 @@ def getGame(gameId):
 
     return game
 
-def storeMsg(msgObj):
-    db = DatabaseService()
+def storeMsg(db, msgObj):
     db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', '%s', '%s', %d)" 
             % (msgObj.gameId, msgObj.message['name'], msgObj.message['type'], json.dumps(msgObj.message), msgObj.message['time']))
-    db.close()
 
 def eventInject():
     def decorate(func):
@@ -65,7 +61,7 @@ def eventInject():
             print "%s [socketio]: %s request with payload: %s" % (time.asctime(time.localtime(time.time())), func.__name__, msg)
             result = func(msg, db=dbInst, gameMsg=gameMsg)
             if gameMsg.message['type'] is not 'ROOM':
-                storeMsg(gameMsg)
+                storeMsg(dbInst, gameMsg)
             return result
         return wrapper
         dbInst.close()

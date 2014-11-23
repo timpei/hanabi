@@ -20,7 +20,7 @@ logging.basicConfig()
 
 @app.route('/api/game/<int:gameId>', methods=['GET'])
 def loadGame(gameId):
-    return jsonify(**getGame(gameId))
+    return jsonify(**getGame(db, gameId))
 
 
 @socketio.on('createGame')
@@ -34,7 +34,7 @@ def createGame(msg, db, gameMsg):
     db.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
 
     join_room(gameId)
-    game = getGame(gameId)
+    game = getGame(db, gameId)
     gameMsg.buildEnterGame()
     send({
         'event': 'enterGame',
@@ -64,7 +64,7 @@ def enterGame(msg, db, gameMsg):
             break
     if not sameNameExists:
         db.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
-        game = getGame(gameId)
+        game = getGame(db, gameId)
         gameMsg.buildEnterGame()
         send({
             'event': 'enterGame',
@@ -93,7 +93,7 @@ def joinGame(msg, db, gameMsg):
     if numPlayers < hanabi.MAX_PLAYERS and not game['hasStarted']:
         db.execute("UPDATE players SET joined=1 WHERE gameId=%d AND name='%s'" % (gameId, name))
         
-        game = getGame(gameId)
+        game = getGame(db, gameId)
         gameMsg.buildJoinGame()
         send({
             'event': 'joinGame',
@@ -118,7 +118,7 @@ def resumeGame(msg, db, gameMsg):
     players = db.fetchall("SELECT name FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
     
     if len(players) != 0:
-        game = getGame(gameId)
+        game = getGame(db, gameId)
         gameMsg.buildResumeGame()
         send({
             'event': 'resumeGame',
@@ -184,7 +184,7 @@ def startGame(msg, db, gameMsg):
                 % (json.dumps(game), json.dumps(deck), gameId))
         db.bulkExecute(queries)   
 
-        game = getGame(gameId)
+        game = getGame(db, gameId)
         gameMsg.buildStartGame()
         send({
             'event': 'startGame',
@@ -236,7 +236,7 @@ def giveHint(msg, db, gameMsg):
         db.execute("UPDATE games SET gameJSON='%s' WHERE id=%s" % (json.dumps(game), gameId))
         db.execute("UPDATE players SET handJSON='%s' WHERE name='%s'" % (json.dumps(toPlayer['hand']), toPlayer['name']))
 
-        game = getGame(gameId)
+        game = getGame(db, gameId)
         gameMsg.buildHint(toName, hintType, hint, cardsHinted)
         send({ 
             'event': 'giveHint',
@@ -276,7 +276,7 @@ def discardCard(msg, db, gameMsg):
             % (json.dumps(player['hand']), gameId, player['name']))
     db.bulkExecute(queries)
 
-    game = getGame(gameId)
+    game = getGame(db, gameId)
     gameMsg.buildDiscard(discardedCard)
     send({
         'event': 'discardCard',
@@ -307,7 +307,7 @@ def playCard(msg, db, gameMsg):
             % (json.dumps(player['hand']), gameId, player['name']))
     db.bulkExecute(queries)
         
-    game = getGame(gameId)
+    game = getGame(db, gameId)
     gameMsg.buildPlay(playedCard)
     send({
         'event': 'playCard',
