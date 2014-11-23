@@ -14,6 +14,9 @@ def parsePlayer(playerRes):
         'hand': json.loads(playerRes[1])
     }
 
+def parseMessage(messageRes):
+    return MessageBuilder.resultToMessage(messageRes[0], messageRes[1], json.loads(messageRes[2]), messageRes[3])
+
 def parseSpectator(spectatorsRes):
     return {
         'name': spectatorsRes[0]

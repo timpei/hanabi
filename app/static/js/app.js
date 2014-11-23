@@ -25,9 +25,14 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
       var e = msg.event
       var game = msg.game
 
-      $scope.messages.push(msg.message)
       switch (e) {
         case 'sendMessage':
+          break
+        case 'previousMessages':
+          for (var i = 0; i < msg.messages.length; i++) {
+            $scope.messages.push(msg.messages[i])
+          }
+          console.log($scope.messages)
           break
         case 'joinGame':
           renderGame(game)
@@ -50,7 +55,7 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
           renderGame(game)
           break
       }
-
+      if (msg.message) $scope.messages.push(msg.message)
       $scope.appState = 'game'  // if client joined room but not in game state, switch to game state
 
     }

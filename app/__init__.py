@@ -7,7 +7,7 @@ from flask import Flask, jsonify, request, make_response
 from flask.ext.socketio import SocketIO, send, join_room, leave_room
 
 import hanabi
-from utils import parsePlayer, getGame, eventInject
+from utils import parsePlayer, parseMessage, getGame, eventInject
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEBUG = True
@@ -62,7 +62,6 @@ def enterGame(msg, db, gameMsg):
                     }
                 }, json=True)
             break
-
     if not sameNameExists:
         db.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
         game = getGame(gameId)
@@ -74,6 +73,11 @@ def enterGame(msg, db, gameMsg):
             'game': game
             }, json=True, room=gameId)
 
+        messages = [parseMessage(i) for i in db.fetchall("SELECT name, type, messageJSON, time FROM messages WHERE gameId = %d; " % gameId)]
+        send({
+            'event': 'previousMessages',
+            'messages': messages
+            }, json=True)
 
 @socketio.on('joinGame')
 @eventInject()
@@ -121,6 +125,12 @@ def resumeGame(msg, db, gameMsg):
             'message' : gameMsg.message,
             'game': game
             }, json=True, room=gameId)
+        
+        messages = [parseMessage(i) for i in db.fetchall("SELECT name, type, messageJSON, time FROM messages WHERE gameId = %d; " % gameId)]
+        send({
+            'event': 'previousMessages',
+            'messages': messages
+            }, json=True)
     else:
         send({
             'error': {
@@ -143,6 +153,11 @@ def leaveGame(msg, db, gameMsg):
         'message' : gameMsg.message,
         'game': {}          # no game returned since it doesn't change the game state
         }, json=True)
+    send({
+        'event': 'leaveGame',
+        'message' : gameMsg.message,
+        'game': {}          # no game returned since it doesn't change the game state
+        }, json=True, room=gameId)
 
 
 @socketio.on('startGame')

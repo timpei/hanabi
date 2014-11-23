@@ -139,6 +139,7 @@ A message object contains information about the broadcased event:
 		'name': sender name String,
 		'type': message type,
 		'time': timestamp,
+        'message': pre-constructed message string,
 		'elements': supplimentary data object
 	}
 	

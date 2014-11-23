@@ -7,7 +7,7 @@ class MessageBuilder:
             "name": name,
             "time": time,
             "type": msgType,
-            "message": msg['type'],
+            "message": msg['message'],
             "elements": msg['elements']
         }
 
@@ -87,14 +87,14 @@ class MessageBuilder:
         self.message['message'] = message
 
     def buildDiscard(self, card):
-        self.message['type'] = "CARD"
+        self.message['type'] = "DISCARD"
         self.message['message'] = "%s discarded the %s %s" % (self.message['name'], card['suit'].lower(), card['number'])
         self.message['elements'] = {
             "card": card
         }
 
     def buildPlay(self, card):
-        self.message['type'] = "CARD"
+        self.message['type'] = "PLAY"
         self.message['message'] = "%s played the %s %s" % (self.message['name'], card['suit'].lower(), card['number'])
         self.message['elements'] = {
             "card": card
