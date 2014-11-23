@@ -153,12 +153,12 @@ def leaveGame(msg, db, gameMsg):
     send({
         'event': 'leaveGame',
         'message' : gameMsg.message,
-        'game': {}          # no game returned since it doesn't change the game state
+        'game': None          # no game returned since it doesn't change the game state
         }, json=True)
     send({
         'event': 'leaveGame',
         'message' : gameMsg.message,
-        'game': {}          # no game returned since it doesn't change the game state
+        'game': None          # no game returned since it doesn't change the game state
         }, json=True, room=gameId)
 
 
@@ -211,7 +211,7 @@ def sendMessage(msg, db, gameMsg):
     send({
         'event': 'sendMessage',
         'message' : gameMsg.message,
-        'game': {}
+        'game': None
         }, json=True, room=gameId)
 
 
