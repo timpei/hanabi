@@ -52,9 +52,9 @@ def storeMsg(db, msgObj):
 
 def eventInject():
     def decorate(func):
-        dbInst = DatabaseService()
         @wraps(func)
         def wrapper(msg):
+            dbInst = DatabaseService()
             gameId = 0 if (not 'gameId' in msg) else msg['gameId']
             name = 0 if (not 'name' in msg) else msg['name']
             gameMsg = MessageBuilder(gameId, name)
@@ -62,9 +62,9 @@ def eventInject():
             result = func(msg, db=dbInst, gameMsg=gameMsg)
             if gameMsg.message['type'] is not 'ROOM':
                 storeMsg(dbInst, gameMsg)
+            dbInst.close()
             return result
         return wrapper
-        dbInst.close()
     return decorate
 
 
