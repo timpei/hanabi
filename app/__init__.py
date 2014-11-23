@@ -65,7 +65,6 @@ def enterGame(msg, db, gameMsg):
     if not sameNameExists:
         db.execute("INSERT INTO players (gameId, name, handJSON, joined) VALUES (%d, '%s', '%s', 0)" % (gameId, name, '[]'))
         game = getGame(gameId)
-        join_room(gameId)
         gameMsg.buildEnterGame()
         send({
             'event': 'enterGame',
@@ -73,6 +72,7 @@ def enterGame(msg, db, gameMsg):
             'game': game
             }, json=True, room=gameId)
 
+        join_room(gameId)
         messages = [parseMessage(i) for i in db.fetchall("SELECT name, type, messageJSON, time FROM messages WHERE gameId = %d; " % gameId)]
         send({
             'event': 'previousMessages',
@@ -117,7 +117,6 @@ def resumeGame(msg, db, gameMsg):
     players = db.fetchall("SELECT name FROM players WHERE gameId = %d AND name='%s'" % (gameId, name))
     
     if len(players) != 0:
-        join_room(gameId)
         game = getGame(gameId)
         gameMsg.buildResumeGame()
         send({
@@ -126,6 +125,7 @@ def resumeGame(msg, db, gameMsg):
             'game': game
             }, json=True, room=gameId)
         
+        join_room(gameId)
         messages = [parseMessage(i) for i in db.fetchall("SELECT name, type, messageJSON, time FROM messages WHERE gameId = %d; " % gameId)]
         send({
             'event': 'previousMessages',
