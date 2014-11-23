@@ -5,7 +5,7 @@ An implementation of Hanabi, a popular board game. Starts with a web client, but
 
 * Server
   * PostgreSQL (Mac: install Postgres.app)
-  * virtualenv is recommended
+  * virtualenv
 * Client
   * Socket.IO
 
@@ -25,13 +25,6 @@ To run on your local machine:
 
     ```
     pip install -r requirements.txt
-    ```
-
-3. Initiate database:
-
-    PostgreSQL needs to be running and psql needs to point to the correct path.    
-    ```
-    psql -d $(whoami) -a -f schema.sql
     ```
 
 4. Setup environment:

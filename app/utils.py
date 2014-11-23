@@ -3,6 +3,7 @@ import urlparse
 import psycopg2
 import os
 import time
+import getpass
 
 from functools import wraps
 
@@ -71,7 +72,7 @@ def eventInject():
 class DatabaseService:
     def connect_db(self):
         urlparse.uses_netloc.append("postgres")
-        url = urlparse.urlparse(os.environ["DATABASE_URL"])
+        url = urlparse.urlparse(os.environ.get("DATABASE_URL", "postgres:///%s" % getpass.getuser()))
         conn = psycopg2.connect(
             database=url.path[1:],
             user=url.username,
