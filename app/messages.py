@@ -72,7 +72,6 @@ class MessageBuilder:
             message = "%s, your %s %s %s. -%s" % (toName, cardsString, cardsare, hint.lower(), self.message['name'])
         else:
             message = "%s, your %s %s %d. -%s" % (toName, cardsString, cardsare, hint, self.message['name'])
-
         self.message['type'] = "HINT"
         self.message['message'] = message
         self.message['elements'] = {

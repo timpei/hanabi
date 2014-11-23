@@ -10,8 +10,8 @@
         </span>
         <div class="chat-body clearfix">
           <div class="header">
-            <strong class="primary-font" ng-if="message.type == 'chat'">{{message.name}}</strong> 
-            <small class="pull-right text-muted"><span class="glyphicon glyphicon-time"></span>12 mins ago</small>
+            <strong class="primary-font" ng-if="message.type == 'MESSAGE'">{{message.name}}</strong> 
+            <small class="pull-right text-muted"><span class="glyphicon glyphicon-time"></span>{{toReadableTime(message.time)}}</small>
           </div>
           <p>
             {{message.message}}

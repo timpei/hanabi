@@ -35,7 +35,6 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
           console.log($scope.messages)
           break
         case 'joinGame':
-          renderGame(game)
           if (msg.message.name == $scope.alias) {
             $scope.$broadcast('successfulJoin')
           }
@@ -45,14 +44,22 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
           renderGame(game)
           $scope.$broadcast('gameStarted')
           break
+        case 'resumeGame':
+        case 'enterGame':
+          if (msg.message.elements.messages) {
+            for (var i = 0; i < msg.message.elements.messages.length; i++) {
+              $scope.messages.push(msg.message.elements.messages[i])
+            }
+            console.log($scope.messages)
+          }
+        case 'endGame':
+          renderGame(game)
+          break
         case 'giveHint':
         case 'discardCard':
         case 'playCard':
-          $scope.$broadcast('gameUpdated')
-        case 'resumeGame':
-        case 'enterGame':
-        case 'endGame':
           renderGame(game)
+          $scope.$broadcast('gameUpdated')
           break
       }
       if (msg.message) $scope.messages.push(msg.message)

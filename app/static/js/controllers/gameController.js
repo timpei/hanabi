@@ -23,4 +23,16 @@ hanabiApp.controller('gameController', ['$scope', 'socketio', function($scope, s
       gameId: $scope.game.id
     })
   }
+
+  $scope.toReadableTime = function(timestamp) {
+    var timediff = Math.min(0, (new Date().getTime())/1000 - timestamp)
+    console.log(timediff)
+    if (timediff / (60*60) > 0) {
+      return (timediff / (60*60)) + " hrs ago"
+    } else if (timediff / (60) > 0) {
+      return (timediff / (60*60) > 0) + " mins ago"
+    } else {
+      return "<1 min ago"
+    }
+  }
 }]);
