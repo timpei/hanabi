@@ -71,12 +71,13 @@ def enterGame(msg, db, gameMsg):
             'message' : gameMsg.message,
             'game': game
             }, json=True, room=gameId)
-
         join_room(gameId)
         messages = [parseMessage(i) for i in db.fetchall("SELECT name, type, messageJSON, time FROM messages WHERE gameId = %d; " % gameId)]
+        gameMsg.message['elements']['messages'] = messages
         send({
-            'event': 'previousMessages',
-            'messages': messages
+            'event': 'enterGame',
+            'message' : gameMsg.message,
+            'game': game
             }, json=True)
 
 @socketio.on('joinGame')
@@ -124,12 +125,13 @@ def resumeGame(msg, db, gameMsg):
             'message' : gameMsg.message,
             'game': game
             }, json=True, room=gameId)
-        
         join_room(gameId)
         messages = [parseMessage(i) for i in db.fetchall("SELECT name, type, messageJSON, time FROM messages WHERE gameId = %d; " % gameId)]
+        gameMsg.message['elements']['messages'] = messages
         send({
-            'event': 'previousMessages',
-            'messages': messages
+            'event': 'resumeGame',
+            'message' : gameMsg.message,
+            'game': game
             }, json=True)
     else:
         send({

@@ -53,73 +53,77 @@ To run on your local machine:
 
 The server will *always* return socket payloads in a consistent structure:
 	
-	{
-		'event': event String,
-		'game': game Object,
-		'message': message Object
-	}
+```javascript
+{
+	'event': event String,
+	'game': game Object,
+	'message': message Object
+}
+```
 	
 ## Game Object
 
 API calls will often return a game object as the response. Here is one for example: 
         
-    {
-        "currentPlayer": "Tim",
-        "discarded": [],
-        "hasEnded": false,
-        "hasStarted": true,
-        "id": 4,
-        "isRainbow": false,
-        "numCardsRemaining": 34,
-        "numHints": 7,
-        "numLives": 3,
-        "order": [
-            "Curtis",
-            "Jackie",
-            "Tim"
-        ],
-        "played": [
-            {"number": 1, "suit": "BLUE", "knownSuit": [], "knowNumber": true}
-        ],
-        "players": [
-            {
-                "hand": [
-                    {"number": 5, "suit": "YELLOW", "knownSuit": [], "knowNumber": false},
-                    {"number": 3, "suit": "BLUE", "knownSuit": [], "knowNumber": false},
-                    {"number": 4, "suit": "YELLOW", "knownSuit": [], "knowNumber": false},
-                    {"number": 1, "suit": "WHITE", "knownSuit": [], "knowNumber": true},
-                    {"number": 1, "suit": "BLUE", "knownSuit": [], "knowNumber": true}
-                ],
-                "name": "Curtis"
-            },
-            {
-                "hand": [
-                    {"number": 2, "suit": "WHITE", "knownSuit": [], "knowNumber": false},
-                    {"number": 1, "suit": "GREEN", "knownSuit": [], "knowNumber": false},
-                    {"number": 1, "suit": "YELLOW", "knownSuit": [], "knowNumber": false},
-                    {"number": 3, "suit": "GREEN", "knownSuit": [], "knowNumber": false},
-                    {"number": 3, "suit": "WHITE", "knownSuit": [], "knowNumber": false}
-                ],
-                "name": "Tim"
-            },
-            {
-                "hand": [
-                    {"number": 2, "suit": "YELLOW", "knownSuit": [], "knowNumber": false},
-                    {"number": 5, "suit": "BLUE", "knownSuit": [], "knowNumber": false},
-                    {"number": 5, "suit": "WHITE", "knownSuit": [], "knowNumber": false},
-                    {"number": 2, "suit": "BLUE", "knownSuit": [], "knowNumber": false},
-                    {"number": 2, "suit": "RED", "knownSuit": [], "knowNumber": false}
-                ],
-                "name": "Jackie"
-            }
-        ],
-        "score": 1,
-        "spectators": [
-            {"name": "Tony"},
-            {"name": "Meng"}
-        ],
-        "turnsLeft": -1
-    }
+```javascript
+{
+   "currentPlayer": "Tim",
+   "discarded": [],
+   "hasEnded": false,
+   "hasStarted": true,
+   "id": 4,
+   "isRainbow": false,
+   "numCardsRemaining": 34,
+   "numHints": 7,
+   "numLives": 3,
+   "order": [
+       "Curtis",
+       "Jackie",
+       "Tim"
+   ],
+   "played": [
+       {"number": 1, "suit": "BLUE", "knownSuit": [], "knowNumber": true}
+   ],
+   "players": [
+       {
+           "hand": [
+               {"number": 5, "suit": "YELLOW", "knownSuit": [], "knowNumber": false},
+               {"number": 3, "suit": "BLUE", "knownSuit": [], "knowNumber": false},
+               {"number": 4, "suit": "YELLOW", "knownSuit": [], "knowNumber": false},
+               {"number": 1, "suit": "WHITE", "knownSuit": [], "knowNumber": true},
+               {"number": 1, "suit": "BLUE", "knownSuit": [], "knowNumber": true}
+           ],
+           "name": "Curtis"
+       },
+       {
+           "hand": [
+               {"number": 2, "suit": "WHITE", "knownSuit": [], "knowNumber": false},
+               {"number": 1, "suit": "GREEN", "knownSuit": [], "knowNumber": false},
+               {"number": 1, "suit": "YELLOW", "knownSuit": [], "knowNumber": false},
+               {"number": 3, "suit": "GREEN", "knownSuit": [], "knowNumber": false},
+               {"number": 3, "suit": "WHITE", "knownSuit": [], "knowNumber": false}
+           ],
+           "name": "Tim"
+       },
+       {
+           "hand": [
+               {"number": 2, "suit": "YELLOW", "knownSuit": [], "knowNumber": false},
+               {"number": 5, "suit": "BLUE", "knownSuit": [], "knowNumber": false},
+               {"number": 5, "suit": "WHITE", "knownSuit": [], "knowNumber": false},
+               {"number": 2, "suit": "BLUE", "knownSuit": [], "knowNumber": false},
+               {"number": 2, "suit": "RED", "knownSuit": [], "knowNumber": false}
+           ],
+           "name": "Jackie"
+       }
+   ],
+   "score": 1,
+   "spectators": [
+       {"name": "Tony"},
+       {"name": "Meng"}
+   ],
+   "turnsLeft": -1
+}
+```
     
 Some of the JSON fields are further discussed below:
 
@@ -139,12 +143,12 @@ A message object contains information about the broadcased event:
 		'name': sender name String,
 		'type': message type,
 		'time': timestamp,
-        'message': pre-constructed message string,
+		'message': pre-constructed message string,
 		'elements': supplimentary data object
 	}
 	
-* `type` can be 'ROOM', 'HINT', 'CARD' or 'MESSAGE' depending on the message provided. ROOM indicates a change in room status. CARD indicates a play or discard card. MESSAGE indicates a sent message.
-* `element` is custom based on the event sent.
+* `type` can be 'ROOM', 'HINT', 'PLAY', 'DISCARD' or 'MESSAGE' depending on the message provided. ROOM indicates a change in room status. MESSAGE indicates a sent message.
+* `elements` is custom based on the event sent.
 
 
 # API Calls
@@ -184,6 +188,14 @@ Enter a game room. Player will become a spectator.
 	}
 	```
 
+* **Message Element**
+
+	```javascript
+	{
+	   "messages": list of Message Objects
+	}
+	```
+	
 * **Exception**
 
     ```javascript
@@ -204,9 +216,17 @@ Resume or re-join a game. Player must be already a player or spectator prior to 
 	emit('resumeGame', {
 	    gameId: int
 	    name: string
+	    quiet: boolean (Optional: message broadcast is skipped if true)
 	}
 	```
+* **Message Element**
 
+	```javascript
+	{
+	   "messages": list of Message Objects
+	}
+	```
+	
 * **Exception**
 
 	```javascript
