@@ -15,7 +15,7 @@ class MessageBuilder:
         self.gameId = gameId
         self.message = {
             "name": name,
-            "time": '%d' % time.time(),
+            "time": int(time.time()),
             "type": "",
             "message": "",
             "elements": {}

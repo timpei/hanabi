@@ -48,7 +48,7 @@ def getGame(gameId):
 def storeMsg(msgObj):
     db = DatabaseService()
     db.execute("INSERT INTO messages (gameId, name, type, messageJSON, time) VALUES (%d, '%s', '%s', '%s', %d)" 
-            % (msgObj.gameId, msgObj.message['name'], msgObj.message['type'], json.dumps(msgObj.message), int(msgObj.message['time'])))
+            % (msgObj.gameId, msgObj.message['name'], msgObj.message['type'], json.dumps(msgObj.message), msgObj.message['time']))
     db.close()
 
 def eventInject():
