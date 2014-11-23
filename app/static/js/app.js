@@ -29,9 +29,7 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
         case 'sendMessage':
           break
         case 'previousMessages':
-          for (var i = 0; i < msg.messages.length; i++) {
-            $scope.messages.push(msg.messages[i])
-          }
+          $scope.messages.concat(msg.messages)
           console.log($scope.messages)
           break
         case 'joinGame':
@@ -67,6 +65,17 @@ hanabiApp.controller('baseController', ['$scope', 'socketio', function($scope, s
 
     }
   })
+
+  $scope.toReadableTime = function(timestamp) {
+    var timediff = Math.max(0, (new Date().getTime())/1000 - timestamp)
+    if (timediff / (60*60) >= 1) {
+      return Math.round((timediff / (60*60))) + " hrs ago"
+    } else if (timediff / (60) >= 1) {
+      return Math.round((timediff / (60*60) > 0)) + " mins ago"
+    } else {
+      return "<1 min ago"
+    }
+  }
 
   var renderGame = function(game) {
     $scope.game = game
