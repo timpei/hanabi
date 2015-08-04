@@ -72,17 +72,18 @@ def eventInject():
 class DatabaseService:
     def connect_db(self):
         urlparse.uses_netloc.append("postgres")
-        url = urlparse.urlparse(os.environ.get("DATABASE_URL", "postgres:///%s" % getpass.getuser()))
+        url = urlparse.urlparse(os.environ.get("DATABASE_URL", self.dbname))
         conn = psycopg2.connect(
             database=url.path[1:],
             user=url.username,
             password=url.password,
             host=url.hostname,
             port=url.port
-        )
+        ) 
         return conn
 
-    def __init__(self):
+    def __init__(self, db=''):
+        self.dbname = "postgres:///%s" % getpass.getuser() if db is not '' else db
         self.conn = self.connect_db()
         self.cur = self.conn.cursor()
 

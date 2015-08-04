@@ -7,13 +7,11 @@ from flask import Flask, jsonify, request, make_response
 from flask.ext.socketio import SocketIO, send, join_room, leave_room
 
 import hanabi
+import config
 from utils import parsePlayer, parseMessage, getGame, eventInject
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DEBUG = True
-
 app = Flask(__name__)
-app.config.from_object(__name__)
+app.config.from_object('config.ProductionConfig')
 socketio = SocketIO(app)
 logging.basicConfig()
 
@@ -22,7 +20,10 @@ logging.basicConfig()
 def loadGame(gameId):
     return jsonify(**getGame(db, gameId))
 
-
+@app.route('/mytest', methods=['POST'])
+def testing():
+    return jsonify(**{'id': request.form['id']})
+    
 @socketio.on('createGame')
 @eventInject()
 def createGame(msg, db, gameMsg):
@@ -335,11 +336,11 @@ def endGame(msg, db, gameMsg):
 
 @app.route('/')
 def index():
-    return make_response(open('%s/templates/index.html' % BASE_DIR).read())
+    return make_response(open('%s/templates/index.html' % app.config['BASE_DIR']).read())
 
 @app.route('/test')
 def test():
-    return make_response(open('%s/templates/test.html' % BASE_DIR).read())
+    return make_response(open('%s/templates/test.html' % app.config['BASE_DIR']).read())
 
 def run():
     port = int(os.environ.get('PORT', 5000))
